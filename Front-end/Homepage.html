@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Si Parte - Homepage</title>
+    <link rel="stylesheet" href="Style.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container">
+                <div class="logo">
+                    <img src="Logo.png"/>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#quiz">Quiz</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home" class="hero">
+            <div class="container">
+                <h1>Benvenuto, SiParte!</h1>
+                <p>Sei pronto per partire, dove andiamo?</p>
+                <button id="startBtn" class="btn btn-primary">Iniziamo</button>
+            </div>
+        </section>
+
+        <section id="quiz" class="quiz-section">
+            <div class="container">
+                <div id="quizContainer" class="quiz-container hidden">
+                    <div class="quiz-header">
+                        <h2 id="questionTitle">Domanda 1</h2>
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-content">
+                        <p id="questionText" class="question-text"></p>
+                        <div id="answersContainer" class="answers-container"></div>
+                    </div>
+
+                    <div class="quiz-footer">
+                        <button id="prevBtn" class="btn btn-secondary">Domanda precedente</button>
+                        <button id="nextBtn" class="btn btn-primary">Domanda successiva</button>
+                    </div>
+                </div>
+
+                <div id="resultsContainer" class="results-container hidden">
+                    <h2>Risultato</h2>
+                    <p id="scoreText"></p>
+                    <button id="restartBtn" class="btn btn-primary">Cambiato Idea?</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="about-section">
+            <div class="container">
+                <h2>Si Parte!</h2>
+                <p>Si Parte! nasce dall'idea di trovare un meta giusta per ogni occasione</p>
+                <p>Noi abbiamo sempre fatto fatica, ma vogliamo che per voi sia semplice!</p>
+                <p>Lasciati guidare dall'itinerario che ti proponiamo sulla base delle tue preferenze e parti senza pensieri!</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Si Parte! All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="Script.js"></script>
+</body>
+</html>
