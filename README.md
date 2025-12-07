@@ -1,6 +1,5 @@
 Requisiti:
 - PHP
-- Composer
 - MySQL/XAMPP
 
 Setup:
