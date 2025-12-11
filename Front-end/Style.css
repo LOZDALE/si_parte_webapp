@@ -24,9 +24,10 @@ html {
 header {
     background-color: #fff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    position: sticky;
+    position: top;
     top: 0;
     z-index: 1000;
+    max-height: 1000px;
 }
 
 .navbar {
@@ -103,6 +104,13 @@ header {
     text-align: center;
 }
 
+.hero .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
 .hero h1 {
     font-size: 3rem;
     margin-bottom: 1rem;
@@ -113,9 +121,25 @@ header {
     margin-bottom: 2rem;
 }
 
+.hero .btn {
+    width: fit-content;
+}
+
 .quiz-section {
     padding: 3rem 0;
     min-height: 60vh;
+}
+
+.quiz-section .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+}
+
+#startBtn {
+    margin-bottom: 2rem;
 }
 
 .quiz-container {
