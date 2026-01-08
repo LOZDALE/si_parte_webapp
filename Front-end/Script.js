@@ -8,44 +8,71 @@ function getDefaultQuizData() {
         {
             id: 1,
             question: "Quale clima preferisci?",
-            answers: ["Caldo e soleggiato", "Fresco e montuoso", "Temperato", "Freddo"],
-            correct: 0,
+            answers: [
+                { text: "Caldo e soleggiato", scores: { beach: 3, mountain: 0, city: 1, ski: 0 } },
+                { text: "Fresco e montuoso", scores: { beach: 0, mountain: 3, city: 0, ski: 1 } },
+                { text: "Temperato", scores: { beach: 1, mountain: 1, city: 3, ski: 0 } },
+                { text: "Freddo", scores: { beach: 0, mountain: 1, city: 0, ski: 3 } }
+            ],
             type: "preference"
         },
         {
             id: 2,
             question: "Quale attività ti piace di più?",
-            answers: ["Spiaggia", "Trekking", "Cultura", "Sci"],
-            correct: 1,
+            answers: [
+                { text: "Spiaggia", scores: { beach: 3, mountain: 0, city: 0, ski: 0 } },
+                { text: "Trekking", scores: { beach: 0, mountain: 3, city: 0, ski: 0 } },
+                { text: "Cultura", scores: { beach: 0, mountain: 0, city: 3, ski: 0 } },
+                { text: "Sci", scores: { beach: 0, mountain: 0, city: 0, ski: 3 } }
+            ],
             type: "preference"
         },
         {
             id: 3,
             question: "Quale è il tuo budget (approssimativo)?",
-            answers: ["Fino a 500€", "500-1000€", "1000-2000€", "Oltre 2000€"],
-            correct: 2,
+            answers: [
+                { text: "Fino a 500€", scores: { beach: 1, mountain: 1, city: 1, ski: 1 } },
+                { text: "500-1000€", scores: { beach: 2, mountain: 2, city: 2, ski: 2 } },
+                { text: "1000-2000€", scores: { beach: 3, mountain: 3, city: 3, ski: 3 } },
+                { text: "Oltre 2000€", scores: { beach: 4, mountain: 4, city: 4, ski: 4 } }
+            ],
             type: "preference"
         },
         {
             id: 4,
             question: "Preferisci una vacanza?",
-            answers: ["Breve (3-4 giorni)", "Media (1 settimana)", "Lunga (2 settimane)", "Molto lunga (3+ settimane)"],
-            correct: 1,
+            answers: [
+                { text: "Breve (3-4 giorni)", scores: { beach: 1, mountain: 1, city: 3, ski: 1 } },
+                { text: "Media (1 settimana)", scores: { beach: 2, mountain: 2, city: 2, ski: 2 } },
+                { text: "Lunga (2 settimane)", scores: { beach: 3, mountain: 3, city: 1, ski: 3 } },
+                { text: "Molto lunga (3+ settimane)", scores: { beach: 4, mountain: 4, city: 0, ski: 4 } }
+            ],
             type: "preference"
         },
         {
             id: 5,
             question: "Con chi desideri partire?",
-            answers: ["Da solo", "In coppia", "Con la famiglia", "Con amici"],
-            correct: 3,
+            answers: [
+                { text: "Da solo", scores: { beach: 1, mountain: 2, city: 3, ski: 2 } },
+                { text: "In coppia", scores: { beach: 3, mountain: 1, city: 2, ski: 1 } },
+                { text: "Con la famiglia", scores: { beach: 2, mountain: 2, city: 1, ski: 1 } },
+                { text: "Con amici", scores: { beach: 3, mountain: 3, city: 2, ski: 3 } }
+            ],
             type: "preference"
         }
     ];
 }
 
-let currentQuestion = 0;
+const getDefaultDestinations = () => [
+    { name: "Spiaggia Paradiso", category: "beach", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop" },
+    { name: "Avventura in Montagna", category: "mountain", image: "https://images.unsplash.com/photo-1464822759844-d150f39b8d7d?w=800&h=600&fit=crop" },
+    { name: "Esploratore Urbano", category: "city", image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop" },
+    { name: "Stazione Sciistica", category: "ski", image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop" }
+];
+
+let totalScores = {beach: 0, mountain: 0, city: 0, ski: 0};
+let recommendedDestination = null;
 let userAnswers = [];
-let score = 0;
 let quizStarted = false;
 
 const startBtn = document.getElementById('startBtn');
@@ -107,10 +134,12 @@ async function loadDestinations() {
             destinations = payload;
         } else if (payload.data && Array.isArray(payload.data)) {
             destinations = payload.data;
+        } else {
+            destinations = getDefaultDestinations();
         }
     } catch (err) {
-        console.warn('Non è stato possibile caricare destinazioni dal backend', err);
-        destinations = [];
+        console.warn('Non è stato possibile caricare destinazioni dal backend, uso default', err);
+        destinations = getDefaultDestinations();
     }
 }
 
@@ -118,7 +147,6 @@ function startQuiz() {
     quizStarted = true;
     currentQuestion = 0;
     userAnswers = new Array(quizData.length).fill(null);
-    score = 0;
 
     document.getElementById('home').style.display = 'none';
     quizContainer.classList.remove('hidden');
@@ -146,7 +174,7 @@ function loadQuestion() {
         if (userAnswers[currentQuestion] === index) {
             answerDiv.classList.add('selected');
         }
-        answerDiv.textContent = answer;
+        answerDiv.textContent = answer.text;
 
         answerDiv.addEventListener('click', () => selectAnswer(index));
         answersContainer.appendChild(answerDiv);
@@ -189,23 +217,49 @@ function prevQuestion() {
 }
 
 function calculateScore() {
-    score = 0;
-    userAnswers.forEach((answer, index) => {
-        if (answer === quizData[index].correct) {
-            score++;
+    totalScores = {beach: 0, mountain: 0, city: 0, ski: 0};
+    userAnswers.forEach((answerIndex, questionIndex) => {
+        if (answerIndex !== null) {
+            const scores = quizData[questionIndex].answers[answerIndex].scores;
+            totalScores.beach += scores.beach;
+            totalScores.mountain += scores.mountain;
+            totalScores.city += scores.city;
+            totalScores.ski += scores.ski;
         }
     });
+
+    // Trova la categoria con il punteggio più alto
+    let maxScore = 0;
+    let bestCategory = 'beach';
+    for (const [category, score] of Object.entries(totalScores)) {
+        if (score > maxScore) {
+            maxScore = score;
+            bestCategory = category;
+        }
+    }
+
+    recommendedDestination = destinations.find(dest => dest.category === bestCategory);
 }
 
 async function showResults() {
     quizContainer.classList.add('hidden');
     resultsContainer.classList.remove('hidden');
 
+    // Mostra la destinazione raccomandata
+    if (recommendedDestination) {
+        document.getElementById('destinationImage').src = recommendedDestination.image;
+        document.getElementById('destinationName').textContent = recommendedDestination.name;
+        document.getElementById('destinationDescription').textContent = `Basato sulle tue preferenze, la destinazione perfetta per te è ${recommendedDestination.name}!`;
+    } else {
+        document.getElementById('destinationName').textContent = 'Nessuna destinazione trovata';
+        document.getElementById('destinationDescription').textContent = 'Si è verificato un errore.';
+    }
+
     try {
         const payload = {
             answers: userAnswers,
-            score: score,
-            totalQuestions: quizData.length
+            totalScores: totalScores,
+            recommendedDestination: recommendedDestination
         };
 
         const res = await fetch(`${API_BASE}/quiz/submit`, {
@@ -216,18 +270,14 @@ async function showResults() {
 
         if (res.ok) {
             const data = await res.json();
-            let rec = null;
-            if (data.recommended_destination) rec = data.recommended_destination;
-            if (data.data && data.data.recommended_destination) rec = data.data.recommended_destination;
-            if (data.data && data.data.recommended_destination === null && data.data) rec = data.data.recommended_destination;
-            if (rec) displayDestinationRecommendation(rec);
+            // Se il backend ha una raccomandazione diversa, usala
+            if (data.recommended_destination) {
+                displayDestinationRecommendation(data.recommended_destination);
+            }
         }
     } catch (err) {
         console.warn('Impossibile inviare risultati al backend:', err);
     }
-
-    const percentage = ((score / quizData.length) * 100).toFixed(1);
-    scoreText.textContent = `Hai risposto correttamente a ${score} domande su ${quizData.length} (${percentage}%)`;
 
     resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -252,7 +302,6 @@ function displayDestinationRecommendation(dest) {
 function restartQuiz() {
     currentQuestion = 0;
     userAnswers = [];
-    score = 0;
     quizStarted = false;
 
     document.getElementById('home').style.display = 'block';
