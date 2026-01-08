@@ -62,11 +62,12 @@ const scoreText = document.getElementById('scoreText');
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
-    startBtn.addEventListener('click', startQuiz);
-    nextBtn.addEventListener('click', nextQuestion);
-    prevBtn.addEventListener('click', prevQuestion);
-    restartBtn.addEventListener('click', restartQuiz);
 });
+initializeApp();
+startBtn.addEventListener('click', startQuiz);
+nextBtn.addEventListener('click', nextQuestion);
+prevBtn.addEventListener('click', prevQuestion);
+restartBtn.addEventListener('click', restartQuiz);
 
 async function initializeApp() {
     try {
@@ -119,7 +120,7 @@ function startQuiz() {
     userAnswers = new Array(quizData.length).fill(null);
     score = 0;
 
-    startBtn.closest('.hero').style.display = 'none';
+    document.getElementById('home').style.display = 'none';
     quizContainer.classList.remove('hidden');
     resultsContainer.classList.add('hidden');
 
@@ -254,7 +255,7 @@ function restartQuiz() {
     score = 0;
     quizStarted = false;
 
-    startBtn.closest('.hero').style.display = 'block';
+    document.getElementById('home').style.display = 'block';
     quizContainer.classList.add('hidden');
     resultsContainer.classList.add('hidden');
 
