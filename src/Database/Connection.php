@@ -16,8 +16,10 @@ class Connection {
                     ""        // password vuota
                 );
                 self::$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                self::$instance->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
             } catch (PDOException $e) {
-                die("Connessione fallita: " . $e->getMessage());
+                // Non usare die() che stampa HTML, ma lancia un'eccezione
+                throw new \Exception("Connessione database fallita: " . $e->getMessage());
             }
         }
         return self::$instance;
