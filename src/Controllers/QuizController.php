@@ -13,7 +13,7 @@ class QuizController {
         'beach' => 'mare',
         'mountain' => 'montagna',
         'city' => 'città',
-        'ski' => 'montagna', // sci mappa a montagna per ora
+        'lago' => 'natura',
         'cultura' => 'cultura',
         // Categorie database aggiuntive che possono essere usate come fallback
         'cibo' => 'cibo',
@@ -167,6 +167,34 @@ class QuizController {
     }
 
     /**
+     * Recupera un'immagine rappresentativa da Wikipedia (API REST summary)
+     * Restituisce l'URL dell'immagine o null se non trovata.
+     */
+    private function fetchWikiImage($title, $lang = 'it') {
+        if (empty($title)) return null;
+        $encoded = rawurlencode($title);
+        $url = "https://{$lang}.wikipedia.org/api/rest_v1/page/summary/{$encoded}";
+        $opts = [
+            'http' => [
+                'method' => 'GET',
+                'header' => "User-Agent: SiParteBot/1.0 (si_parte@example.com)\r\nAccept: application/json\r\n"
+            ],
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false
+            ]
+        ];
+        $context = stream_context_create($opts);
+        $raw = @file_get_contents($url, false, $context);
+        if ($raw === false) return null;
+        $data = json_decode($raw, true);
+        if (!$data || !is_array($data)) return null;
+        if (!empty($data['originalimage']['source'])) return $data['originalimage']['source'];
+        if (!empty($data['thumbnail']['source'])) return $data['thumbnail']['source'];
+        return null;
+    }
+
+    /**
      * Restituisce le domande del quiz in formato JSON
      * Prime 3 domande per determinare il paese, poi altre domande per la città
      */
@@ -182,10 +210,10 @@ class QuizController {
                 'question' => 'Quale clima preferisci?',
                 'phase' => 1,
                 'answers' => [
-                    ['text' => 'Caldo e soleggiato', 'scores' => ['beach' => 3, 'mountain' => 0, 'city' => 1, 'ski' => 0]],
-                    ['text' => 'Fresco e montuoso', 'scores' => ['beach' => 0, 'mountain' => 3, 'city' => 0, 'ski' => 1]],
-                    ['text' => 'Temperato', 'scores' => ['beach' => 1, 'mountain' => 1, 'city' => 3, 'ski' => 0]],
-                    ['text' => 'Freddo', 'scores' => ['beach' => 0, 'mountain' => 1, 'city' => 0, 'ski' => 3]]
+                    ['text' => 'Caldo e soleggiato', 'scores' => ['beach' => 3, 'mountain' => 0, 'city' => 1, 'lago' => 0]],
+                    ['text' => 'Fresco e montuoso', 'scores' => ['beach' => 0, 'mountain' => 3, 'city' => 0, 'lago' => 0]],
+                    ['text' => 'Temperato', 'scores' => ['beach' => 1, 'mountain' => 1, 'city' => 3, 'lago' => 0]],
+                    ['text' => 'Freddo', 'scores' => ['beach' => 0, 'mountain' => 1, 'city' => 0, 'lago' => 0]]
                 ],
                 'type' => 'preference'
             ],
@@ -194,10 +222,10 @@ class QuizController {
                 'question' => 'Quale attività ti piace di più?',
                 'phase' => 1,
                 'answers' => [
-                    ['text' => 'Spiaggia', 'scores' => ['beach' => 3, 'mountain' => 0, 'city' => 0, 'ski' => 0]],
-                    ['text' => 'Trekking', 'scores' => ['beach' => 0, 'mountain' => 3, 'city' => 0, 'ski' => 0]],
-                    ['text' => 'Cultura e arte', 'scores' => ['beach' => 0, 'mountain' => 0, 'city' => 3, 'ski' => 0]],
-                    ['text' => 'Sci', 'scores' => ['beach' => 0, 'mountain' => 0, 'city' => 0, 'ski' => 3]]
+                    ['text' => 'Spiaggia', 'scores' => ['beach' => 3, 'mountain' => 0, 'city' => 0, 'lago' => 0]],
+                    ['text' => 'Trekking', 'scores' => ['beach' => 0, 'mountain' => 3, 'city' => 0, 'lago' => 0]],
+                    ['text' => 'Cultura e arte', 'scores' => ['beach' => 0, 'mountain' => 0, 'city' => 3, 'lago' => 0]],
+                    ['text' => 'Sci', 'scores' => ['beach' => 0, 'mountain' => 0, 'city' => 0, 'lago' => 0]]
                 ],
                 'type' => 'preference'
             ],
@@ -206,10 +234,10 @@ class QuizController {
                 'question' => 'Quale è il tuo budget per persona (approssimativo)?',
                 'phase' => 1,
                 'answers' => [
-                    ['text' => 'Fino a 500€', 'scores' => ['beach' => 1, 'mountain' => 1, 'city' => 1, 'ski' => 1]],
-                    ['text' => '500-1000€', 'scores' => ['beach' => 2, 'mountain' => 2, 'city' => 2, 'ski' => 2]],
-                    ['text' => '1000-2000€', 'scores' => ['beach' => 3, 'mountain' => 3, 'city' => 3, 'ski' => 3]],
-                    ['text' => 'Oltre 2000€', 'scores' => ['beach' => 4, 'mountain' => 4, 'city' => 4, 'ski' => 4]]
+                    ['text' => 'Fino a 500€', 'scores' => ['beach' => 1, 'mountain' => 1, 'city' => 1, 'lago' => 0]],
+                    ['text' => '500-1000€', 'scores' => ['beach' => 2, 'mountain' => 2, 'city' => 2, 'lago' => 0]],
+                    ['text' => '1000-2000€', 'scores' => ['beach' => 3, 'mountain' => 3, 'city' => 3, 'lago' => 0]],
+                    ['text' => 'Oltre 2000€', 'scores' => ['beach' => 4, 'mountain' => 4, 'city' => 4, 'lago' => 0]]
                 ],
                 'type' => 'preference'
             ],
@@ -219,10 +247,10 @@ class QuizController {
                 'question' => 'Preferisci una destinazione?',
                 'phase' => 2,
                 'answers' => [
-                    ['text' => 'Grande città metropolitana', 'scores' => ['beach' => 0, 'mountain' => 0, 'city' => 4, 'ski' => 0]],
-                    ['text' => 'Città storica e artistica', 'scores' => ['beach' => 1, 'mountain' => 0, 'city' => 3, 'ski' => 0]],
-                    ['text' => 'Località di mare', 'scores' => ['beach' => 4, 'mountain' => 0, 'city' => 1, 'ski' => 0]],
-                    ['text' => 'Località montana', 'scores' => ['beach' => 0, 'mountain' => 4, 'city' => 0, 'ski' => 3]]
+                    ['text' => 'Grande città metropolitana', 'scores' => ['beach' => 0, 'mountain' => 0, 'city' => 4, 'lago' => 0]],
+                    ['text' => 'Città storica e artistica', 'scores' => ['beach' => 1, 'mountain' => 0, 'city' => 3, 'lago' => 0]],
+                    ['text' => 'Località di mare', 'scores' => ['beach' => 4, 'mountain' => 0, 'city' => 1, 'lago' => 0]],
+                    ['text' => 'Località montana', 'scores' => ['beach' => 0, 'mountain' => 4, 'city' => 0, 'lago' => 0]]
                 ],
                 'type' => 'preference'
             ],
@@ -231,10 +259,10 @@ class QuizController {
                 'question' => 'Quanto tempo vuoi dedicare al viaggio?',
                 'phase' => 2,
                 'answers' => [
-                    ['text' => 'Weekend breve (2-3 giorni)', 'scores' => ['beach' => 1, 'mountain' => 1, 'city' => 4, 'ski' => 1]],
-                    ['text' => 'Settimana (5-7 giorni)', 'scores' => ['beach' => 3, 'mountain' => 3, 'city' => 3, 'ski' => 3]],
-                    ['text' => 'Due settimane (10-14 giorni)', 'scores' => ['beach' => 4, 'mountain' => 4, 'city' => 2, 'ski' => 4]],
-                    ['text' => 'Più di due settimane', 'scores' => ['beach' => 4, 'mountain' => 4, 'city' => 1, 'ski' => 4]]
+                    ['text' => 'Weekend breve (2-3 giorni)', 'scores' => ['beach' => 1, 'mountain' => 1, 'city' => 4, 'lago' => 0]],
+                    ['text' => 'Settimana (5-7 giorni)', 'scores' => ['beach' => 3, 'mountain' => 3, 'city' => 3, 'lago' => 0]],
+                    ['text' => 'Due settimane (10-14 giorni)', 'scores' => ['beach' => 4, 'mountain' => 4, 'city' => 2, 'lago' => 0]],
+                    ['text' => 'Più di due settimane', 'scores' => ['beach' => 4, 'mountain' => 4, 'city' => 1, 'lago' => 0]]
                 ],
                 'type' => 'preference'
             ],
@@ -243,10 +271,10 @@ class QuizController {
                 'question' => 'Cosa ti attrae di più?',
                 'phase' => 2,
                 'answers' => [
-                    ['text' => 'Vita notturna e divertimento', 'scores' => ['beach' => 2, 'mountain' => 0, 'city' => 4, 'ski' => 1]],
-                    ['text' => 'Relax e benessere', 'scores' => ['beach' => 4, 'mountain' => 2, 'city' => 1, 'ski' => 0]],
-                    ['text' => 'Sport e attività all\'aria aperta', 'scores' => ['beach' => 2, 'mountain' => 4, 'city' => 0, 'ski' => 4]],
-                    ['text' => 'Shopping e intrattenimento', 'scores' => ['beach' => 1, 'mountain' => 0, 'city' => 4, 'ski' => 0]]
+                    ['text' => 'Vita notturna e divertimento', 'scores' => ['beach' => 2, 'mountain' => 0, 'city' => 4, 'lago' => 0]],
+                    ['text' => 'Relax e benessere', 'scores' => ['beach' => 4, 'mountain' => 2, 'city' => 1, 'lago' => 4]],
+                    ['text' => 'Sport e attività all\'aria aperta', 'scores' => ['beach' => 2, 'mountain' => 4, 'city' => 0, 'lago' => 0]],
+                    ['text' => 'Shopping e intrattenimento', 'scores' => ['beach' => 1, 'mountain' => 0, 'city' => 4, 'lago' => 0]]
                 ],
                 'type' => 'preference'
             ],
@@ -255,10 +283,10 @@ class QuizController {
                 'question' => 'Preferisci un\'atmosfera?',
                 'phase' => 2,
                 'answers' => [
-                    ['text' => 'Tradizionale e autentica', 'scores' => ['beach' => 2, 'mountain' => 3, 'city' => 3, 'ski' => 2]],
-                    ['text' => 'Moderno e cosmopolita', 'scores' => ['beach' => 1, 'mountain' => 0, 'city' => 4, 'ski' => 0]],
-                    ['text' => 'Turistica ma accogliente', 'scores' => ['beach' => 4, 'mountain' => 2, 'city' => 2, 'ski' => 3]],
-                    ['text' => 'Esclusiva e raffinata', 'scores' => ['beach' => 3, 'mountain' => 4, 'city' => 3, 'ski' => 4]]
+                    ['text' => 'Tradizionale e autentica', 'scores' => ['beach' => 2, 'mountain' => 3, 'city' => 3]],
+                    ['text' => 'Moderno e cosmopolita', 'scores' => ['beach' => 1, 'mountain' => 0, 'city' => 4]],
+                    ['text' => 'Turistica ma accogliente', 'scores' => ['beach' => 4, 'mountain' => 2, 'city' => 2]],
+                    ['text' => 'Esclusiva e raffinata', 'scores' => ['beach' => 3, 'mountain' => 4, 'city' => 3]]
                 ],
                 'type' => 'preference'
             ]
@@ -271,10 +299,10 @@ class QuizController {
                 'question' => 'Preferisci una destinazione?',
                 'phase' => 2,
                 'answers' => [
-                    ['text' => 'Grande città metropolitana', 'scores' => ['beach' => 0, 'mountain' => 0, 'city' => 4, 'ski' => 0]],
-                    ['text' => 'Città storica e artistica', 'scores' => ['beach' => 1, 'mountain' => 0, 'city' => 3, 'ski' => 0]],
-                    ['text' => 'Località di mare', 'scores' => ['beach' => 4, 'mountain' => 0, 'city' => 1, 'ski' => 0]],
-                    ['text' => 'Località montana', 'scores' => ['beach' => 0, 'mountain' => 4, 'city' => 0, 'ski' => 3]]
+                    ['text' => 'Grande città metropolitana', 'scores' => ['beach' => 0, 'mountain' => 0, 'city' => 4]],
+                    ['text' => 'Città storica e artistica', 'scores' => ['beach' => 1, 'mountain' => 0, 'city' => 3]],
+                    ['text' => 'Località di mare', 'scores' => ['beach' => 4, 'mountain' => 0, 'city' => 1]],
+                    ['text' => 'Località montana', 'scores' => ['beach' => 0, 'mountain' => 4, 'city' => 0]]
                 ],
                 'type' => 'preference'
             ],
@@ -283,10 +311,10 @@ class QuizController {
                 'question' => 'Quanto tempo vuoi dedicare al viaggio?',
                 'phase' => 2,
                 'answers' => [
-                    ['text' => 'Weekend breve (2-3 giorni)', 'scores' => ['beach' => 1, 'mountain' => 1, 'city' => 4, 'ski' => 1]],
-                    ['text' => 'Settimana (5-7 giorni)', 'scores' => ['beach' => 3, 'mountain' => 3, 'city' => 3, 'ski' => 3]],
-                    ['text' => 'Due settimane (10-14 giorni)', 'scores' => ['beach' => 4, 'mountain' => 4, 'city' => 2, 'ski' => 4]],
-                    ['text' => 'Più di due settimane', 'scores' => ['beach' => 4, 'mountain' => 4, 'city' => 1, 'ski' => 4]]
+                    ['text' => 'Weekend breve (2-3 giorni)', 'scores' => ['beach' => 1, 'mountain' => 1, 'city' => 4]],
+                    ['text' => 'Settimana (5-7 giorni)', 'scores' => ['beach' => 3, 'mountain' => 3, 'city' => 3]],
+                    ['text' => 'Due settimane (10-14 giorni)', 'scores' => ['beach' => 4, 'mountain' => 4, 'city' => 2]],
+                    ['text' => 'Più di due settimane', 'scores' => ['beach' => 4, 'mountain' => 4, 'city' => 1]]
                 ],
                 'type' => 'preference'
             ],
@@ -295,10 +323,10 @@ class QuizController {
                 'question' => 'Cosa ti attrae di più?',
                 'phase' => 2,
                 'answers' => [
-                    ['text' => 'Vita notturna e divertimento', 'scores' => ['beach' => 2, 'mountain' => 0, 'city' => 4, 'ski' => 1]],
-                    ['text' => 'Relax e benessere', 'scores' => ['beach' => 4, 'mountain' => 2, 'city' => 1, 'ski' => 0]],
-                    ['text' => 'Sport e attività all\'aria aperta', 'scores' => ['beach' => 2, 'mountain' => 4, 'city' => 0, 'ski' => 4]],
-                    ['text' => 'Shopping e intrattenimento', 'scores' => ['beach' => 1, 'mountain' => 0, 'city' => 4, 'ski' => 0]]
+                    ['text' => 'Vita notturna e divertimento', 'scores' => ['beach' => 2, 'mountain' => 0, 'city' => 4]],
+                    ['text' => 'Relax e benessere', 'scores' => ['beach' => 4, 'mountain' => 2, 'city' => 1]],
+                    ['text' => 'Sport e attività all\'aria aperta', 'scores' => ['beach' => 2, 'mountain' => 4, 'city' => 0]],
+                    ['text' => 'Shopping e intrattenimento', 'scores' => ['beach' => 1, 'mountain' => 0, 'city' => 4]]
                 ],
                 'type' => 'preference'
             ]
@@ -328,6 +356,7 @@ class QuizController {
             'montagna' => 'mountain',
             'città' => 'city',
             'cultura' => 'city',
+            'natura' => 'lago',
             'cibo' => 'city',
             'divertimento' => 'city'
         ];
@@ -353,7 +382,7 @@ class QuizController {
             if (empty($dbCat)) continue;
             $map = $dbToFrontend[$dbCat] ?? ['key' => 'city', 'text' => ucfirst($dbCat)];
             // assegna punteggi in base alla categoria frontend
-            $scores = ['beach' => 0, 'mountain' => 0, 'city' => 0, 'ski' => 0];
+            $scores = ['beach' => 0, 'mountain' => 0, 'city' => 0, 'lago' => 0];
             $scores[$map['key']] = 4;
             $categoryAnswers[] = ['text' => $map['text'], 'scores' => $scores];
         }
@@ -364,21 +393,13 @@ class QuizController {
             exit;
         }
 
-        // Limitiamo il numero di opzioni a 4 e aggiungiamo opzioni di fallback per varietà
-        $categoryAnswers = array_slice($categoryAnswers, 0, 4);
-        // Se meno di 3 opzioni, aggiungi opzioni generiche
-        $genericCategoryOptions = [
-            ['text' => 'Grande città metropolitana', 'scores' => ['beach'=>0,'mountain'=>0,'city'=>4,'ski'=>0]],
-            ['text' => 'Località di mare', 'scores' => ['beach'=>4,'mountain'=>0,'city'=>1,'ski'=>0]],
-            ['text' => 'Località montana', 'scores' => ['beach'=>0,'mountain'=>4,'city'=>0,'ski'=>3]]
+        // Sostituisci le opzioni con le etichette richieste: Località balneare, Chalet, Centro abitato, Lago
+        $categoryAnswers = [
+            ['text' => 'Località balneare', 'scores' => ['beach' => 4, 'mountain' => 0, 'city' => 0, 'lago' => 0]],
+            ['text' => 'Chalet', 'scores' => ['beach' => 0, 'mountain' => 4, 'city' => 0, 'lago' => 0]],
+            ['text' => 'Centro abitato', 'scores' => ['beach' => 0, 'mountain' => 0, 'city' => 4, 'lago' => 0]],
+            ['text' => 'Lago', 'scores' => ['beach' => 0, 'mountain' => 0, 'city' => 0, 'lago' => 4]]
         ];
-        foreach ($genericCategoryOptions as $opt) {
-            if (count($categoryAnswers) >= 4) break;
-            // evita duplicati testuali
-            $exists = false;
-            foreach ($categoryAnswers as $ca) { if ($ca['text'] === $opt['text']) { $exists = true; break; } }
-            if (!$exists) $categoryAnswers[] = $opt;
-        }
 
         // Costruiamo le domande fase2: prima domanda determina la categoria preferita all'interno del paese
         $phase2 = [];
@@ -417,29 +438,14 @@ class QuizController {
 
                 $frontendCategory = $categoryMap[$dest['categoria_viaggio']] ?? 'city';
 
-                // Determina l'immagine in base alla destinazione specifica
-                $destinationImages = [
-                    'Roma' => 'https://images.unsplash.com/photo-1529260830199-42c24126f198?w=800&h=600&fit=crop',
-                    'Barcellona' => 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&h=600&fit=crop',
-                    'Alpi' => 'https://images.unsplash.com/photo-1464822759844-d150f39b8d7d?w=800&h=600&fit=crop',
-                    'Parigi' => 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&h=600&fit=crop'
-                ];
-
-                // Immagini fallback per categoria
-                $categoryImages = [
-                    'beach' => 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-                    'mountain' => 'https://images.unsplash.com/photo-1464822759844-d150f39b8d7d?w=800&h=600&fit=crop',
-                    'city' => 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
-                    'ski' => 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop'
-                ];
-
-                $image = $destinationImages[$dest['nome_destinazione']] ?? $categoryImages[$frontendCategory] ?? $categoryImages['city'];
+                // Do not return images for destinations
+                $image = null;
 
                 return [
                     'id' => (int)$dest['id'],
                     'name' => $dest['nome_destinazione'],
                     'category' => $frontendCategory,
-                    'image' => $image,
+                    //'image' => $image,
                     'base_budget' => (float)$dest['fascia_budget_base'],
                     'description' => "Destinazione perfetta per un viaggio di tipo {$dest['categoria_viaggio']}",
                     'original_category' => $dest['categoria_viaggio']
@@ -505,23 +511,8 @@ class QuizController {
                 $categorie = json_decode($categorie, true) ?? [];
             }
 
-            // Determina immagine per il paese (usa campo `immagine_bandiera` se presente, altrimenti fallback)
-            $countryImages = [
-                'Italia' => 'https://images.unsplash.com/photo-1508747703725-7199031b6a75?w=800&h=600&fit=crop',
-                'Spagna' => 'https://images.unsplash.com/photo-1508098682720-64385ff3a8d5?w=800&h=600&fit=crop',
-                'Francia' => 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&h=600&fit=crop',
-                'Stati Uniti' => 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&h=600&fit=crop',
-                'Grecia' => 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-                'Turchia' => 'https://images.unsplash.com/photo-1526481280698-5d02a0c77d4b?w=800&h=600&fit=crop',
-                'Giappone' => 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&h=600&fit=crop',
-            ];
-
-            $image = null;
-            if (!empty($paese['immagine_bandiera'])) {
-                $image = $paese['immagine_bandiera'];
-            } elseif (!empty($paese['nome']) && isset($countryImages[$paese['nome']])) {
-                $image = $countryImages[$paese['nome']];
-            }
+            // Try to obtain a representative image for the country (Wikipedia)
+            $image = $this->fetchWikiImage($paese['nome']);
 
             // Prova a recuperare le coordinate della città più popolare del paese per generare una mappa
             $mapImage = null;
@@ -575,9 +566,8 @@ class QuizController {
                     'nome' => $paese['nome'] ?? 'Paese non specificato',
                     'codice_iso' => $paese['codice_iso'] ?? null,
                     'descrizione' => $paese['descrizione'] ?? 'Paese selezionato in base alle tue preferenze',
-                    'categorie_suggerite' => $categorie,
                     'immagine' => $image,
-                    'map_image' => $mapImage
+                    'categorie_suggerite' => $categorie
                 ],
                 'scores' => $totalScores,
                 'best_category' => $bestCategory
@@ -704,6 +694,7 @@ class QuizController {
                 'montagna' => 'mountain',
                 'città' => 'city',
                 'cultura' => 'city',
+                'natura' => 'lago',
                 'cibo' => 'city',
                 'divertimento' => 'city',
                 'sci' => 'mountain'
@@ -812,24 +803,9 @@ class QuizController {
             // Log per debug del mapping
             error_log("SubmitQuiz: Categoria database '{$citta['categoria_viaggio']}' mappata a frontend '$frontendCategory'");
 
-            // Immagine: preferisci immagine specifica della città, poi immagine del paese, poi fallback per categoria
-            $image = $citta['immagine'] ?? null;
-            if (!$image) {
-                // prova immagine bandiera/paese
-                $image = $paese['immagine_bandiera'] ?? null;
-            }
-            if (!$image) {
-                $categoryImages = [
-                    'beach' => 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-                    'mountain' => 'https://images.unsplash.com/photo-1464822759844-d150f39b8d7d?w=800&h=600&fit=crop',
-                    'city' => 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
-                    'ski' => 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop'
-                ];
-                $image = $categoryImages[$frontendCategory] ?? $categoryImages['city'];
-                error_log("SubmitQuiz: Usata immagine di default per categoria: $frontendCategory");
-            } else {
-                error_log("SubmitQuiz: Usata immagine specifica: $image");
-            }
+            // Recupera immagine rappresentativa per la città (Wikipedia)
+            $image = $this->fetchWikiImage($citta['nome']);
+            error_log("SubmitQuiz: Immagine città trovata: " . ($image ?: 'none'));
 
             // Genera URL mappa dinamica per la destinazione (evidenzia paese con bbox se disponibile)
             $mapImage = null;
@@ -870,7 +846,8 @@ class QuizController {
                 'paese' => [
                     'id' => (int)$paese['id'],
                     'nome' => $paese['nome'],
-                    'descrizione' => $paese['descrizione'] ?? ''
+                    'descrizione' => $paese['descrizione'] ?? '',
+                    'immagine' => $this->fetchWikiImage($paese['nome'])
                 ],
                 'recommended_destination' => [
                     'id' => (int)$citta['id'],
@@ -878,7 +855,6 @@ class QuizController {
                     'paese' => $paese['nome'],
                     'category' => $frontendCategory,
                     'image' => $image,
-                    'map_image' => $mapImage,
                     'base_budget' => (float)$citta['fascia_budget_base'],
                     'description' => $citta['descrizione'] ?? "Perfetto per te! {$citta['nome']} ({$paese['nome']}) è ideale per un viaggio di tipo {$citta['categoria_viaggio']}.",
                     'budget_finale' => $user->budget_finale ?? (float)$citta['fascia_budget_base'],
@@ -920,7 +896,7 @@ class QuizController {
      * Calcola i punteggi totali da tutte le risposte
      */
     private function calculateScoresFromAllAnswers($answers) {
-        $totalScores = ['beach' => 0, 'mountain' => 0, 'city' => 0, 'ski' => 0];
+        $totalScores = ['beach' => 0, 'mountain' => 0, 'city' => 0, 'lago' => 0];
         
         // Le prime 3 domande hanno questa struttura (per fase 1)
         $phase1Questions = $this->getQuestionsArray();
@@ -929,34 +905,34 @@ class QuizController {
         $phase2Questions = [
             [
                 'answers' => [
-                    ['scores' => ['beach' => 0, 'mountain' => 0, 'city' => 4, 'ski' => 0]],
-                    ['scores' => ['beach' => 1, 'mountain' => 0, 'city' => 3, 'ski' => 0]],
-                    ['scores' => ['beach' => 4, 'mountain' => 0, 'city' => 1, 'ski' => 0]],
-                    ['scores' => ['beach' => 0, 'mountain' => 4, 'city' => 0, 'ski' => 3]]
+                    ['scores' => ['beach' => 0, 'mountain' => 0, 'city' => 4, 'lago' => 0]],
+                    ['scores' => ['beach' => 1, 'mountain' => 0, 'city' => 3, 'lago' => 0]],
+                    ['scores' => ['beach' => 4, 'mountain' => 0, 'city' => 1, 'lago' => 0]],
+                    ['scores' => ['beach' => 0, 'mountain' => 4, 'city' => 0, 'lago' => 0]]
                 ]
             ],
             [
                 'answers' => [
-                    ['scores' => ['beach' => 1, 'mountain' => 1, 'city' => 4, 'ski' => 1]],
-                    ['scores' => ['beach' => 3, 'mountain' => 3, 'city' => 3, 'ski' => 3]],
-                    ['scores' => ['beach' => 4, 'mountain' => 4, 'city' => 2, 'ski' => 4]],
-                    ['scores' => ['beach' => 4, 'mountain' => 4, 'city' => 1, 'ski' => 4]]
+                    ['scores' => ['beach' => 1, 'mountain' => 1, 'city' => 4, 'lago' => 0]],
+                    ['scores' => ['beach' => 3, 'mountain' => 3, 'city' => 3, 'lago' => 0]],
+                    ['scores' => ['beach' => 4, 'mountain' => 4, 'city' => 2, 'lago' => 0]],
+                    ['scores' => ['beach' => 4, 'mountain' => 4, 'city' => 1, 'lago' => 0]]
                 ]
             ],
             [
                 'answers' => [
-                    ['scores' => ['beach' => 2, 'mountain' => 0, 'city' => 4, 'ski' => 1]],
-                    ['scores' => ['beach' => 4, 'mountain' => 2, 'city' => 1, 'ski' => 0]],
-                    ['scores' => ['beach' => 2, 'mountain' => 4, 'city' => 0, 'ski' => 4]],
-                    ['scores' => ['beach' => 1, 'mountain' => 0, 'city' => 4, 'ski' => 0]]
+                    ['scores' => ['beach' => 2, 'mountain' => 0, 'city' => 4, 'lago' => 0]],
+                    ['scores' => ['beach' => 4, 'mountain' => 2, 'city' => 1, 'lago' => 0]],
+                    ['scores' => ['beach' => 2, 'mountain' => 4, 'city' => 0, 'lago' => 0]],
+                    ['scores' => ['beach' => 1, 'mountain' => 0, 'city' => 4, 'lago' => 0]]
                 ]
             ],
             [
                 'answers' => [
-                    ['scores' => ['beach' => 2, 'mountain' => 3, 'city' => 3, 'ski' => 2]],
-                    ['scores' => ['beach' => 1, 'mountain' => 0, 'city' => 4, 'ski' => 0]],
-                    ['scores' => ['beach' => 4, 'mountain' => 2, 'city' => 2, 'ski' => 3]],
-                    ['scores' => ['beach' => 3, 'mountain' => 4, 'city' => 3, 'ski' => 4]]
+                    ['scores' => ['beach' => 2, 'mountain' => 3, 'city' => 3, 'lago' => 0]],
+                    ['scores' => ['beach' => 1, 'mountain' => 0, 'city' => 4, 'lago' => 0]],
+                    ['scores' => ['beach' => 4, 'mountain' => 2, 'city' => 2, 'lago' => 0]],
+                    ['scores' => ['beach' => 3, 'mountain' => 4, 'city' => 3, 'lago' => 0]]
                 ]
             ]
         ];
@@ -975,7 +951,7 @@ class QuizController {
                     $totalScores['beach'] += $scores['beach'] ?? 0;
                     $totalScores['mountain'] += $scores['mountain'] ?? 0;
                     $totalScores['city'] += $scores['city'] ?? 0;
-                    $totalScores['ski'] += $scores['ski'] ?? 0;
+                    $totalScores['lago'] += $scores['lago'] ?? 0;
                 }
             }
         }
@@ -1095,7 +1071,7 @@ class QuizController {
      * Calcola i punteggi totali da un range specifico di risposte
      */
     private function calculateScoresFromAnswers($answers, $startIndex, $endIndex) {
-        $totalScores = ['beach' => 0, 'mountain' => 0, 'city' => 0, 'ski' => 0];
+        $totalScores = ['beach' => 0, 'mountain' => 0, 'city' => 0, 'lago' => 0];
         
         // Carica le domande (prime 3 per fase 1)
         $questions = $this->getQuestionsArray();
@@ -1110,7 +1086,7 @@ class QuizController {
                     $totalScores['beach'] += $scores['beach'] ?? 0;
                     $totalScores['mountain'] += $scores['mountain'] ?? 0;
                     $totalScores['city'] += $scores['city'] ?? 0;
-                    $totalScores['ski'] += $scores['ski'] ?? 0;
+                    $totalScores['lago'] += $scores['lago'] ?? 0;
                 }
             }
         }
@@ -1125,26 +1101,26 @@ class QuizController {
         return [
             [
                 'answers' => [
-                    ['scores' => ['beach' => 3, 'mountain' => 0, 'city' => 1, 'ski' => 0]],
-                    ['scores' => ['beach' => 0, 'mountain' => 3, 'city' => 0, 'ski' => 1]],
-                    ['scores' => ['beach' => 1, 'mountain' => 1, 'city' => 3, 'ski' => 0]],
-                    ['scores' => ['beach' => 0, 'mountain' => 1, 'city' => 0, 'ski' => 3]]
+                    ['scores' => ['beach' => 3, 'mountain' => 0, 'city' => 1, 'lago' => 0]],
+                    ['scores' => ['beach' => 0, 'mountain' => 3, 'city' => 0, 'lago' => 0]],
+                    ['scores' => ['beach' => 1, 'mountain' => 1, 'city' => 3, 'lago' => 0]],
+                    ['scores' => ['beach' => 0, 'mountain' => 1, 'city' => 0, 'lago' => 0]]
                 ]
             ],
             [
                 'answers' => [
-                    ['scores' => ['beach' => 3, 'mountain' => 0, 'city' => 0, 'ski' => 0]],
-                    ['scores' => ['beach' => 0, 'mountain' => 3, 'city' => 0, 'ski' => 0]],
-                    ['scores' => ['beach' => 0, 'mountain' => 0, 'city' => 3, 'ski' => 0]],
-                    ['scores' => ['beach' => 0, 'mountain' => 0, 'city' => 0, 'ski' => 3]]
+                    ['scores' => ['beach' => 3, 'mountain' => 0, 'city' => 0, 'lago' => 0]],
+                    ['scores' => ['beach' => 0, 'mountain' => 3, 'city' => 0, 'lago' => 0]],
+                    ['scores' => ['beach' => 0, 'mountain' => 0, 'city' => 3, 'lago' => 0]],
+                    ['scores' => ['beach' => 0, 'mountain' => 0, 'city' => 0, 'lago' => 0]]
                 ]
             ],
             [
                 'answers' => [
-                    ['scores' => ['beach' => 1, 'mountain' => 1, 'city' => 1, 'ski' => 1]],
-                    ['scores' => ['beach' => 2, 'mountain' => 2, 'city' => 2, 'ski' => 2]],
-                    ['scores' => ['beach' => 3, 'mountain' => 3, 'city' => 3, 'ski' => 3]],
-                    ['scores' => ['beach' => 4, 'mountain' => 4, 'city' => 4, 'ski' => 4]]
+                    ['scores' => ['beach' => 1, 'mountain' => 1, 'city' => 1, 'lago' => 0]],
+                    ['scores' => ['beach' => 2, 'mountain' => 2, 'city' => 2, 'lago' => 0]],
+                    ['scores' => ['beach' => 3, 'mountain' => 3, 'city' => 3, 'lago' => 0]],
+                    ['scores' => ['beach' => 4, 'mountain' => 4, 'city' => 4, 'lago' => 0]]
                 ]
             ]
         ];
@@ -1170,8 +1146,7 @@ class QuizController {
             $categoryToDb = [
                 'beach' => ['mare', 'isole', 'costa'],
                 'mountain' => ['montagna', 'montagne', 'alpi', 'natura'],
-                'city' => ['città', 'cultura', 'storia', 'tradizione', 'shopping', 'divertimento', 'festa'],
-                'ski' => ['montagna', 'sci', 'snowboard']
+                'city' => ['città', 'cultura', 'storia', 'tradizione', 'shopping', 'divertimento', 'festa']
             ];
             
             $dbCategories = $categoryToDb[$bestCategory] ?? ['città'];
@@ -1529,22 +1504,14 @@ class QuizController {
         // Mappa categoria frontend -> categoria database
         $dbCategory = $this->categoryMapping[$bestCategory] ?? 'città';
         
-        // Immagini di default per categoria
-        $categoryImages = [
-            'beach' => 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop',
-            'mountain' => 'https://images.unsplash.com/photo-1464822759844-d150f39b8d7d?w=800&h=600&fit=crop',
-            'city' => 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
-            'ski' => 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop'
-        ];
-        
-        $image = $categoryImages[$bestCategory] ?? $categoryImages['city'];
+        // No default images for categories
+        $image = null;
         
         // Nomi di città di default in base alla categoria
         $defaultCityNames = [
             'beach' => 'Destinazione di Mare',
             'mountain' => 'Destinazione di Montagna',
-            'city' => 'Destinazione Urbana',
-            'ski' => 'Destinazione Sciistica'
+            'city' => 'Destinazione Urbana'
         ];
         
         $cityName = $defaultCityNames[$bestCategory] ?? 'Destinazione Consigliata';
@@ -1556,7 +1523,6 @@ class QuizController {
             'categoria_viaggio' => $dbCategory,
             'fascia_budget_base' => 1000.00,
             'descrizione' => "Perfetto per te! Questa è una destinazione consigliata basata sulle tue preferenze.",
-            'immagine' => $image,
             'popolarita' => 5
         ];
     }

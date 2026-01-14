@@ -12,10 +12,10 @@ function getDefaultQuizData() {
             id: 1,
             question: "Quale clima preferisci?",
             answers: [
-                { text: "Caldo e soleggiato", scores: { beach: 3, mountain: 0, city: 1, ski: 0 } },
-                { text: "Fresco e montuoso", scores: { beach: 0, mountain: 3, city: 0, ski: 1 } },
-                { text: "Temperato", scores: { beach: 1, mountain: 1, city: 3, ski: 0 } },
-                { text: "Freddo", scores: { beach: 0, mountain: 1, city: 0, ski: 3 } }
+                { text: "Caldo e soleggiato", scores: { beach: 3, mountain: 0, city: 1, lago: 0 } },
+                { text: "Fresco e montuoso", scores: { beach: 0, mountain: 3, city: 0, lago: 0 } },
+                { text: "Temperato", scores: { beach: 1, mountain: 1, city: 3, lago: 0 } },
+                { text: "Freddo", scores: { beach: 0, mountain: 1, city: 0, lago: 0 } }
             ],
             type: "preference"
         },
@@ -23,10 +23,10 @@ function getDefaultQuizData() {
             id: 2,
             question: "Quale attività ti piace di più?",
             answers: [
-                { text: "Spiaggia", scores: { beach: 3, mountain: 0, city: 0, ski: 0 } },
-                { text: "Trekking", scores: { beach: 0, mountain: 3, city: 0, ski: 0 } },
-                { text: "Cultura", scores: { beach: 0, mountain: 0, city: 3, ski: 0 } },
-                { text: "Sci", scores: { beach: 0, mountain: 0, city: 0, ski: 3 } }
+                { text: "Spiaggia", scores: { beach: 3, mountain: 0, city: 0, lago: 0 } },
+                { text: "Trekking", scores: { beach: 0, mountain: 3, city: 0, lago: 0 } },
+                { text: "Cultura", scores: { beach: 0, mountain: 0, city: 3, lago: 0 } },
+                { text: "Sci", scores: { beach: 0, mountain: 0, city: 0, lago: 0 } }
             ],
             type: "preference"
         },
@@ -34,10 +34,10 @@ function getDefaultQuizData() {
             id: 3,
             question: "Quale è il tuo budget (approssimativo)?",
             answers: [
-                { text: "Fino a 500€", scores: { beach: 1, mountain: 1, city: 1, ski: 1 } },
-                { text: "500-1000€", scores: { beach: 2, mountain: 2, city: 2, ski: 2 } },
-                { text: "1000-2000€", scores: { beach: 3, mountain: 3, city: 3, ski: 3 } },
-                { text: "Oltre 2000€", scores: { beach: 4, mountain: 4, city: 4, ski: 4 } }
+                { text: "Fino a 500€", scores: { beach: 1, mountain: 1, city: 1, lago: 0 } },
+                { text: "500-1000€", scores: { beach: 2, mountain: 2, city: 2, lago: 0 } },
+                { text: "1000-2000€", scores: { beach: 3, mountain: 3, city: 3, lago: 0 } },
+                { text: "Oltre 2000€", scores: { beach: 4, mountain: 4, city: 4, lago: 0 } }
             ],
             type: "preference"
         },
@@ -45,10 +45,10 @@ function getDefaultQuizData() {
             id: 4,
             question: "Preferisci una vacanza?",
             answers: [
-                { text: "Breve (3-4 giorni)", scores: { beach: 1, mountain: 1, city: 3, ski: 1 } },
-                { text: "Media (1 settimana)", scores: { beach: 2, mountain: 2, city: 2, ski: 2 } },
-                { text: "Lunga (2 settimane)", scores: { beach: 3, mountain: 3, city: 1, ski: 3 } },
-                { text: "Molto lunga (3+ settimane)", scores: { beach: 4, mountain: 4, city: 0, ski: 4 } }
+                { text: "Breve (3-4 giorni)", scores: { beach: 1, mountain: 1, city: 3, lago: 0 } },
+                { text: "Media (1 settimana)", scores: { beach: 2, mountain: 2, city: 2, lago: 0 } },
+                { text: "Lunga (2 settimane)", scores: { beach: 3, mountain: 3, city: 1, lago: 0 } },
+                { text: "Molto lunga (3+ settimane)", scores: { beach: 4, mountain: 4, city: 0, lago: 0 } }
             ],
             type: "preference"
         },
@@ -56,10 +56,10 @@ function getDefaultQuizData() {
             id: 5,
             question: "Con chi desideri partire?",
             answers: [
-                { text: "Da solo", scores: { beach: 1, mountain: 2, city: 3, ski: 2 } },
-                { text: "In coppia", scores: { beach: 3, mountain: 1, city: 2, ski: 1 } },
-                { text: "Con la famiglia", scores: { beach: 2, mountain: 2, city: 1, ski: 1 } },
-                { text: "Con amici", scores: { beach: 3, mountain: 3, city: 2, ski: 3 } }
+                { text: "Da solo", scores: { beach: 1, mountain: 2, city: 3, lago: 0 } },
+                { text: "In coppia", scores: { beach: 3, mountain: 1, city: 2, lago: 0 } },
+                { text: "Con la famiglia", scores: { beach: 2, mountain: 2, city: 1, lago: 0 } },
+                { text: "Con amici", scores: { beach: 3, mountain: 3, city: 2, lago: 0 } }
             ],
             type: "preference"
         }
@@ -67,13 +67,13 @@ function getDefaultQuizData() {
 }
 
 const getDefaultDestinations = () => [
-    { name: "Spiaggia Paradiso", category: "beach", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop" },
-    { name: "Avventura in Montagna", category: "mountain", image: "https://images.unsplash.com/photo-1464822759844-d150f39b8d7d?w=800&h=600&fit=crop" },
-    { name: "Esploratore Urbano", category: "city", image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop" },
-    { name: "Stazione Sciistica", category: "ski", image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&h=600&fit=crop" }
-];
+    { name: "Spiaggia Paradiso", category: "beach" },
+    { name: "Avventura in Montagna", category: "mountain" },
+    { name: "Esploratore Urbano", category: "city" },
+    { name: "Lago Sereno", category: "lago" }
+]; 
 
-let totalScores = {beach: 0, mountain: 0, city: 0, ski: 0};
+let totalScores = {beach: 0, mountain: 0, city: 0, lago: 0};
 let recommendedDestination = null;
 let userAnswers = [];
 let quizStarted = false;
@@ -403,8 +403,8 @@ function showPaeseResult() {
     
     // Mostra le informazioni del paese
     const paeseInfo = document.getElementById('paeseInfo');
-    // Preferisci la mappa (`map_image`) se fornita dal backend, altrimenti usa l'immagine normale
-    const paeseImage = selectedPaese.map_image || selectedPaese.immagine || selectedPaese.image || '';
+    // Usa l'immagine fornita dal backend se disponibile
+    const paeseImage = selectedPaese && selectedPaese.immagine ? selectedPaese.immagine : '';
     paeseInfo.innerHTML = `
         ${paeseImage ? `<img src="${paeseImage}" alt="${selectedPaese.nome}" class="paese-image" style="max-width:100%;height:auto;border-radius:8px;margin-bottom:10px;">` : ''}
         <h3>${selectedPaese.nome}</h3>
@@ -417,7 +417,7 @@ function showPaeseResult() {
 }
 
 function calculateScore() {
-    totalScores = {beach: 0, mountain: 0, city: 0, ski: 0};
+    totalScores = {beach: 0, mountain: 0, city: 0, lago: 0};
     userAnswers.forEach((answerIndex, questionIndex) => {
         if (answerIndex !== null && quizData[questionIndex] && quizData[questionIndex].answers[answerIndex]) {
             const scores = quizData[questionIndex].answers[answerIndex].scores;
@@ -425,7 +425,7 @@ function calculateScore() {
                 totalScores.beach += scores.beach || 0;
                 totalScores.mountain += scores.mountain || 0;
                 totalScores.city += scores.city || 0;
-                totalScores.ski += scores.ski || 0;
+                totalScores.lago += scores.lago || 0;
             }
         }
     });
@@ -465,11 +465,12 @@ async function showResults() {
     document.getElementById('destinationName').textContent = 'Calcolo in corso...';
     document.getElementById('destinationDescription').textContent = 'Stiamo elaborando le tue risposte per trovare la città perfetta...';
     
-    // Resetta l'immagine prima del caricamento
+    // Resetta e nascondi l'immagine prima del caricamento
     const destinationImage = document.getElementById('destinationImage');
     if (destinationImage) {
         destinationImage.src = '';
         destinationImage.alt = 'Caricamento...';
+        destinationImage.style.display = 'none';
     }
 
     try {
@@ -512,10 +513,9 @@ async function showResults() {
             if (!data || !data.recommended_destination) {
                 console.error('showResults: Risposta backend non valida. Dati ricevuti:', data);
                 
-                // Fallback: mostra una destinazione di default
+                // Fallback: mostra una destinazione di default senza immagine
                 displayDestinationRecommendation({
                     name: 'Destinazione Consigliata',
-                    image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
                     description: 'Siamo spiacenti, non siamo riusciti a trovare una destinazione specifica. Ricomincia il quiz per ottenere una raccomandazione personalizzata.',
                     base_budget: 1000,
                     budget_finale: 1000,
@@ -560,10 +560,9 @@ async function showResults() {
             console.error('showResults: Messaggio errore completo:', errorMessage);
             alert(errorMessage);
             
-            // Mostra una destinazione di default in caso di errore
+            // Mostra una destinazione di default in caso di errore (senza immagine)
             displayDestinationRecommendation({
                 name: 'Destinazione Temporanea',
-                image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
                 description: 'Si è verificato un errore nel recupero della destinazione. Per favore riprova più tardi o ricomincia il quiz.',
                 base_budget: 1000,
                 budget_finale: 1000,
@@ -582,10 +581,9 @@ async function showResults() {
         
         alert(errorMessage);
         
-        // Fallback: mostra una destinazione di default anche in caso di errore di rete
+        // Fallback: mostra una destinazione di default anche in caso di errore di rete (senza immagine)
         displayDestinationRecommendation({
             name: 'Destinazione Temporanea',
-            image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
             description: 'Si è verificato un errore di connessione. Per favore ricarica la pagina e riprova.',
             base_budget: 1000,
             budget_finale: 1000,
@@ -627,24 +625,32 @@ function displayDestinationRecommendation(dest, paese = null) {
             return;
         }
         
-        // Aggiorna l'immagine della destinazione (preferisci mappa se fornita)
-        if (dest && (dest.map_image || dest.image)) {
-            destinationImage.src = dest.map_image || dest.image;
-            destinationImage.alt = dest.name || 'Destinazione consigliata';
-            console.log('displayDestinationRecommendation: Immagine impostata:', destinationImage.src);
-        } else {
-            // Immagine di default se non specificata
-            destinationImage.src = 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop';
-            destinationImage.alt = 'Destinazione consigliata';
-            console.warn('displayDestinationRecommendation: Immagine non specificata, usata default');
+        // Aggiorna l'immagine della destinazione:
+        // preferisci in ordine: dest.image, dest.immagine, then paese.immagine
+        const candidateImages = [];
+        if (dest) {
+            if (dest.image) candidateImages.push(dest.image);
+            if (dest.immagine) candidateImages.push(dest.immagine);
         }
-        
-        // Gestione errori di caricamento immagine
-        destinationImage.onerror = function() {
-            console.error('displayDestinationRecommendation: Errore nel caricamento immagine:', dest.image);
-            this.src = 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop';
-            this.alt = 'Immagine non disponibile';
-        };
+        if (paese && paese.immagine) candidateImages.push(paese.immagine);
+        const chosenImage = candidateImages.find(src => !!src) || null;
+        if (chosenImage) {
+            destinationImage.style.display = '';
+            destinationImage.src = chosenImage;
+            destinationImage.alt = dest?.name || paese?.nome || 'Destinazione consigliata';
+            console.log('displayDestinationRecommendation: Immagine impostata:', destinationImage.src);
+            destinationImage.onerror = function() {
+                console.error('displayDestinationRecommendation: Errore nel caricamento immagine:', this.src);
+                this.onerror = null;
+                this.style.display = 'none';
+            };
+        } else {
+            // Nascondi elemento immagine se non ci sono sorgenti valide
+            destinationImage.style.display = 'none';
+            destinationImage.src = '';
+            destinationImage.alt = '';
+            console.log('displayDestinationRecommendation: Nessuna immagine da mostrare, elemento nascosto');
+        }
         
         // Mostra nome città e paese
         let nameText = 'Destinazione consigliata';
