@@ -1,12 +1,9 @@
 /**
  * CONFIGURAZIONE URL API
- * Su Railway il sito è nella root, quindi non serve "/Si_Parte/"
  */
-const API_BASE = '/Public/api.php';
+const API_BASE = '/Public/api.php'; 
 
 let quizData = [];
-let destinations = [];
-let totalScores = { beach: 0, mountain: 0, city: 0, lago: 0 };
 let userAnswers = [];
 let currentQuestion = 0;
 let selectedPaese = null;
@@ -23,68 +20,52 @@ const elements = {
     progressFill: document.getElementById('progressFill'),
     prevBtn: document.getElementById('prevBtn'),
     nextBtn: document.getElementById('nextBtn'),
-    restartBtn: document.getElementById('restartBtn')
+    restartBtn: document.getElementById('restartBtn'),
+    startBtn: document.getElementById('startBtn')
 };
 
 document.addEventListener('DOMContentLoaded', initializeApp);
 
 async function initializeApp() {
-    startBtn.addEventListener('click', startQuiz);
-    elements.nextBtn.addEventListener('click', nextQuestion);
-    elements.prevBtn.addEventListener('click', prevQuestion);
-    elements.restartBtn.addEventListener('click', restartQuiz);
+    if (elements.startBtn) elements.startBtn.addEventListener('click', startQuiz);
+    if (elements.nextBtn) elements.nextBtn.addEventListener('click', nextQuestion);
+    if (elements.prevBtn) elements.prevBtn.addEventListener('click', prevQuestion); // Ora definita sotto
+    if (elements.restartBtn) elements.restartBtn.addEventListener('click', () => location.reload());
 
-    try {
-        await loadQuizData();
-        await loadDestinations();
-    } catch (err) {
-        console.error('Errore inizializzazione:', err);
-        // Fallback dati locali se il server non risponde
-        quizData = getDefaultQuizData();
-        destinations = getDefaultDestinations();
-    }
+    await loadInitialData();
 }
 
-// --- CARICAMENTO DATI ---
-
-async function loadQuizData() {
+async function loadInitialData() {
     try {
         const res = await fetch(`${API_BASE}?route=quiz/questions`);
-        const payload = await res.json();
-        quizData = Array.isArray(payload) ? payload : (payload.data || getDefaultQuizData());
+        const text = await res.text(); // Leggiamo come testo per debuggare se non è JSON
+        try {
+            quizData = JSON.parse(text);
+            console.log("Quiz caricato correttamente");
+        } catch (e) {
+            console.error("Il server non ha risposto con JSON. Risposta ricevuta:", text);
+        }
     } catch (err) {
-        quizData = getDefaultQuizData();
+        console.error("Errore caricamento dati:", err);
     }
 }
-
-async function loadDestinations() {
-    try {
-        const res = await fetch(`${API_BASE}?route=quiz/destinations`);
-        const payload = await res.json();
-        destinations = Array.isArray(payload) ? payload : (payload.data || getDefaultDestinations());
-    } catch (err) {
-        destinations = getDefaultDestinations();
-    }
-}
-
-// --- LOGICA QUIZ ---
 
 function startQuiz() {
+    if (!quizData || quizData.length === 0) {
+        alert("Dati del quiz non disponibili. Controlla il database su Railway.");
+        return;
+    }
     currentQuestion = 0;
     phase1Complete = false;
-    selectedPaese = null;
     userAnswers = new Array(quizData.length).fill(null);
     
     elements.home.style.display = 'none';
     elements.quizContainer.classList.remove('hidden');
-    elements.resultsContainer.classList.add('hidden');
     loadQuestion();
 }
 
 function loadQuestion() {
     const question = quizData[currentQuestion];
-    if (!question) return;
-
     elements.questionTitle.textContent = `Domanda ${currentQuestion + 1} di ${quizData.length}`;
     elements.questionText.textContent = question.question;
     elements.progressFill.style.width = `${((currentQuestion + 1) / quizData.length) * 100}%`;
@@ -94,41 +75,41 @@ function loadQuestion() {
         const btn = document.createElement('div');
         btn.className = `answer-option ${userAnswers[currentQuestion] === index ? 'selected' : ''}`;
         btn.textContent = answer.text;
-        btn.onclick = () => selectAnswer(index);
+        btn.onclick = () => {
+            userAnswers[currentQuestion] = index;
+            loadQuestion();
+        };
         elements.answersContainer.appendChild(btn);
     });
 
     elements.prevBtn.disabled = currentQuestion === 0;
     
-    // Testo pulsante dinamico
+    // Gestione testo bottone
     if (currentQuestion === 2 && !phase1Complete) {
-        elements.nextBtn.textContent = 'Scopri il tuo paese';
+        elements.nextBtn.textContent = 'Scopri il Paese';
     } else if (currentQuestion === quizData.length - 1) {
-        elements.nextBtn.textContent = 'Vedi la città ideale';
+        elements.nextBtn.textContent = 'Vedi Risultato';
     } else {
         elements.nextBtn.textContent = 'Prossima';
     }
 }
 
-function selectAnswer(index) {
-    userAnswers[currentQuestion] = index;
-    const options = document.querySelectorAll('.answer-option');
-    options.forEach((opt, i) => opt.classList.toggle('selected', i === index));
+function prevQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        loadQuestion();
+    }
 }
 
 async function nextQuestion() {
     if (userAnswers[currentQuestion] === null) {
-        alert("Seleziona una risposta prima di continuare!");
+        alert("Seleziona una risposta!");
         return;
     }
 
-    // FINE FASE 1
     if (currentQuestion === 2 && !phase1Complete) {
         await handleSelectPaese();
-        return;
-    }
-
-    if (currentQuestion < quizData.length - 1) {
+    } else if (currentQuestion < quizData.length - 1) {
         currentQuestion++;
         loadQuestion();
     } else {
@@ -136,117 +117,74 @@ async function nextQuestion() {
     }
 }
 
-// --- INTEGRAZIONE BACKEND ---
-
 async function handleSelectPaese() {
     try {
-        const payload = { answers: userAnswers.slice(0, 3) };
         const res = await fetch(`${API_BASE}?route=quiz/select-paese`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({ answers: userAnswers.slice(0, 3) })
         });
-
         const data = await res.json();
-        if (data.success && data.paese_selezionato) {
+        if (data.success) {
             selectedPaese = data.paese_selezionato;
             phase1Complete = true;
-            
-            // Carica domande fase 2 se il server le ha
-            try { await loadCountryQuestions(selectedPaese.id); } catch(e) {}
-            
             showPaeseResult();
         } else {
-            alert("Errore nel trovare un paese adatto. Riprova!");
+            alert("Errore nella selezione del paese: " + (data.error || "riprova"));
         }
     } catch (err) {
-        console.error("Errore API Paese:", err);
-        alert("Connessione al server fallita. Controlla la tua rete.");
+        console.error("Errore selezione paese:", err);
     }
-}
-
-async function handleFinalSubmit() {
-    calculateScore();
-    
-    try {
-        const payload = {
-            answers: userAnswers,
-            totalScores: totalScores,
-            paese_id: selectedPaese?.id
-        };
-
-        const res = await fetch(`${API_BASE}?route=quiz/submit`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-        if (data.recommended_destination) {
-            displayResults(data.recommended_destination, data.paese);
-        }
-    } catch (err) {
-        console.error("Errore Submit:", err);
-        displayResults(recommendedDestination, selectedPaese); // Fallback locale
-    }
-}
-
-// --- UTILITY ---
-
-function calculateScore() {
-    totalScores = { beach: 0, mountain: 0, city: 0, lago: 0 };
-    userAnswers.forEach((ansIdx, qIdx) => {
-        if (ansIdx !== null && quizData[qIdx]?.answers[ansIdx]?.scores) {
-            const s = quizData[qIdx].answers[ansIdx].scores;
-            totalScores.beach += s.beach || 0;
-            totalScores.mountain += s.mountain || 0;
-            totalScores.city += s.city || 0;
-            totalScores.lago += s.lago || 0;
-        }
-    });
 }
 
 function showPaeseResult() {
     elements.quizContainer.classList.add('hidden');
-    let container = document.getElementById('paeseContainer');
+    let container = document.getElementById('paeseResult');
     if (!container) {
         container = document.createElement('div');
-        container.id = 'paeseContainer';
-        container.className = 'paese-container';
-        document.querySelector('#quiz .container').appendChild(container);
+        container.id = 'paeseResult';
+        container.className = 'card p-4 text-center my-4';
+        elements.quizContainer.parentNode.insertBefore(container, elements.resultsContainer);
     }
-    
     container.innerHTML = `
-        <div class="paese-result card text-center p-4">
-            <h2>🌍 Destinazione: ${selectedPaese.nome}</h2>
-            <img src="${selectedPaese.immagine || ''}" style="max-width:300px; margin: 20px auto; border-radius: 10px;">
-            <p>${selectedPaese.descrizione || ''}</p>
-            <button id="continueBtn" class="btn btn-primary mt-3">Personalizza il viaggio (Fase 2)</button>
-        </div>
+        <h2 class="mb-3">Il tuo paese ideale è: <span class="text-primary">${selectedPaese.nome}</span></h2>
+        <p class="mb-4">${selectedPaese.descrizione || 'Un posto fantastico scelto per te!'}</p>
+        <button onclick="window.continueQuiz()" class="btn btn-success">Ora personalizza la città!</button>
     `;
     container.classList.remove('hidden');
-    
-    document.getElementById('continueBtn').onclick = () => {
-        container.classList.add('hidden');
-        elements.quizContainer.classList.remove('hidden');
-        currentQuestion = 3;
-        loadQuestion();
-    };
 }
 
-function displayResults(dest, paese) {
+window.continueQuiz = () => {
+    document.getElementById('paeseResult').classList.add('hidden');
+    elements.quizContainer.classList.remove('hidden');
+    currentQuestion++;
+    loadQuestion();
+};
+
+async function handleFinalSubmit() {
+    try {
+        const res = await fetch(`${API_BASE}?route=quiz/submit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                answers: userAnswers, 
+                paese_id: selectedPaese ? selectedPaese.id : null 
+            })
+        });
+        const data = await res.json();
+        displayResults(data);
+    } catch (err) {
+        console.error("Errore Submit:", err);
+    }
+}
+
+function displayResults(data) {
     elements.quizContainer.classList.add('hidden');
     elements.resultsContainer.classList.remove('hidden');
     
-    document.getElementById('destinationName').textContent = `${dest.name}, ${paese?.nome || ''}`;
-    document.getElementById('destinationDescription').textContent = dest.description;
-    const img = document.getElementById('destinationImage');
-    if (img) {
-        img.src = dest.immagine || dest.image || '';
-        img.style.display = img.src ? 'block' : 'none';
-    }
-}
-
-function restartQuiz() {
-    location.reload(); // Il modo più pulito per resettare tutto
+    // Usiamo i nomi corretti che arrivano dal backend
+    const destination = data.recommended_destination || data.destination || {};
+    
+    document.getElementById('destinationName').textContent = destination.name || "Destinazione trovata!";
+    document.getElementById('destinationDescription').textContent = destination.description || "Goditi il tuo viaggio!";
 }
