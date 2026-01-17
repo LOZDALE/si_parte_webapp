@@ -1,187 +1,92 @@
 <?php
-// Disabilita l'output di errori HTML prima di impostare gli header JSON
+// 1. Configurazione Errori - Fondamentale per evitare output non JSON
 error_reporting(E_ALL);
-ini_set('display_errors', 0); // Non mostrare errori come HTML
-ini_set('log_errors', 1); // Logga gli errori invece
+ini_set('display_errors', 0); 
+ini_set('log_errors', 1);
 
+// 2. Header obbligatori
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Gestisci preflight OPTIONS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
-// Gestore di errori personalizzato per assicurarsi che tutto sia JSON
-set_error_handler(function($severity, $message, $file, $line) {
-    throw new ErrorException($message, 0, $severity, $file, $line);
-});
-
-// Gestore di eccezioni globale
-set_exception_handler(function($exception) {
-    http_response_code(500);
-    echo json_encode([
-        'error' => 'Errore del server',
-        'message' => $exception->getMessage(),
-        'file' => basename($exception->getFile()),
-        'line' => $exception->getLine()
-    ]);
-    error_log("Uncaught Exception: " . $exception->getMessage() . " in " . $exception->getFile() . ":" . $exception->getLine());
-    exit;
-});
-
-// Carica le dipendenze
+// 3. Caricamento dipendenze con gestione percorsi Railway
 try {
-    // Composer autoload (opzionale, se esiste)
-    $autoloadPath = __DIR__ . '/../vendor/autoload.php';
-    if (file_exists($autoloadPath)) {
-        require $autoloadPath;
-    }
+    // __DIR__ è /app/Public
+    $basePath = dirname(__DIR__); // Sale a /app/
     
-    // Carica i file necessari manualmente
-    require __DIR__ . '/../src/Database/Connection.php';
-    require __DIR__ . '/../src/Models/User.php';
-    require __DIR__ . '/../src/Controllers/QuizController.php';
-} catch (Exception $e) {
+    // Verifica e carica Connection
+    $connPath = $basePath . '/src/Database/Connection.php';
+    if (!file_exists($connPath)) throw new Exception("File non trovato: src/Database/Connection.php");
+    require_once $connPath;
+
+    // Carica Model e Controller
+    require_once $basePath . '/src/Models/User.php';
+    require_once $basePath . '/src/Controllers/QuizController.php';
+
+} catch (Throwable $e) {
     http_response_code(500);
     echo json_encode([
-        'error' => 'Errore nel caricamento delle dipendenze',
-        'message' => $e->getMessage(),
-        'file' => basename($e->getFile()),
-        'line' => $e->getLine()
-    ]);
-    exit;
-} catch (Error $e) {
-    http_response_code(500);
-    echo json_encode([
-        'error' => 'Errore fatale nel caricamento',
-        'message' => $e->getMessage(),
-        'file' => basename($e->getFile()),
-        'line' => $e->getLine()
+        'status' => 'error',
+        'message' => 'Errore caricamento server: ' . $e->getMessage()
     ]);
     exit;
 }
 
 use SiParte\Quiz\Controllers\QuizController;
 
-// Ottieni metodo e path
+// 4. Routing Intelligente
 $method = $_SERVER['REQUEST_METHOD'];
-$requestUri = $_SERVER['REQUEST_URI'] ?? '';
-$scriptName = $_SERVER['SCRIPT_NAME'] ?? '/Public/api.php';
-$path = parse_url($requestUri, PHP_URL_PATH);
+$route = $_GET['route'] ?? '';
 
-// Estrai il path dopo api.php usando diversi metodi
-// Priorità 1: Query string (più compatibile con XAMPP/Apache)
-if (isset($_GET['route']) && !empty($_GET['route'])) {
-    $path = trim($_GET['route'], '/');
-} else {
-    // Priorità 2: PATH_INFO (funziona se il server lo supporta)
-    $pathInfo = $_SERVER['PATH_INFO'] ?? '';
-    
-    if (!empty($pathInfo)) {
-        $path = trim($pathInfo, '/');
-    } else {
-        // Priorità 3: Estrai dal REQUEST_URI
-        // Rimuovi eventuale query string dal path
-        $pathWithoutQuery = $path;
-        
-        // Trova api.php nel path e prendi tutto ciò che viene dopo
-        $apiPhpPos = strpos($pathWithoutQuery, 'api.php');
-        if ($apiPhpPos !== false) {
-            // Prendi tutto dopo "api.php"
-            $afterApiPhp = substr($pathWithoutQuery, $apiPhpPos + strlen('api.php'));
-            // Rimuovi eventuale slash iniziale e finale
-            $path = trim($afterApiPhp, '/');
-        } else {
-            // Fallback: prova a rimuovere vari percorsi base
-            $pathWithoutQuery = str_replace(['/Si_Parte/Public/api.php', '/Public/api.php', 'Public/api.php', '/api.php', 'api.php'], '', $pathWithoutQuery);
-            $path = trim($pathWithoutQuery, '/');
-        }
-    }
+// Pulizia della route (rimuove prefissi fastidiosi)
+if (empty($route)) {
+    $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    // Rimuove "/Si_Parte/Public/api.php" o "/api.php" per isolare la rotta
+    $route = str_replace(['/Si_Parte/Public/api.php', '/Public/api.php', '/api.php'], '', $requestUri);
 }
+$route = trim($route, '/');
 
-// Instanzia il controller
 $quizController = new QuizController();
 
-// Normalizza il path (rimuovi trailing slash e spazi)
-$path = trim($path, '/');
-
-// Log per debug (rimuovi in produzione)
-error_log("API Request - Method: $method, Path: '$path', URI: $requestUri, PATH_INFO: " . ($_SERVER['PATH_INFO'] ?? 'null') . ", SCRIPT_NAME: $scriptName");
-
-// Router semplice
 try {
     switch ($method) {
         case 'GET':
-            if ($path === 'quiz/questions') {
+            if ($route === 'quiz/questions') {
                 $quizController->getQuestions();
-            } elseif ($path === 'quiz/destinations') {
+            } elseif ($route === 'quiz/destinations') {
                 $quizController->getDestinations();
             } else {
-                http_response_code(404);
-                echo json_encode(['error' => 'Endpoint non trovato', 'path' => $path, 'request_uri' => $requestUri]);
-                exit;
+                throw new Exception("Endpoint GET non trovato: $route");
             }
             break;
 
         case 'POST':
-            if ($path === 'quiz/select-paese') {
-                $input = json_decode(file_get_contents('php://input'), true);
-                if ($input === null && json_last_error() !== JSON_ERROR_NONE) {
-                    http_response_code(400);
-                    echo json_encode([
-                        'error' => 'JSON non valido',
-                        'json_error' => json_last_error_msg()
-                    ]);
-                    exit;
-                }
-                $quizController->selectPaese($input ?? []);
-            } elseif ($path === 'quiz/submit') {
-                $input = json_decode(file_get_contents('php://input'), true);
-                if ($input === null && json_last_error() !== JSON_ERROR_NONE) {
-                    http_response_code(400);
-                    echo json_encode([
-                        'error' => 'JSON non valido',
-                        'json_error' => json_last_error_msg()
-                    ]);
-                    exit;
-                }
-                $quizController->submitQuiz($input ?? []);
+            $input = json_decode(file_get_contents('php://input'), true) ?? [];
+            if ($route === 'quiz/select-paese') {
+                $quizController->selectPaese($input);
+            } elseif ($route === 'quiz/submit') {
+                $quizController->submitQuiz($input);
             } else {
-                http_response_code(404);
-                echo json_encode(['error' => 'Endpoint non trovato', 'path' => $path, 'request_uri' => $requestUri]);
-                exit;
+                throw new Exception("Endpoint POST non trovato: $route");
             }
             break;
 
         default:
             http_response_code(405);
-            echo json_encode(['error' => 'Metodo non consentito', 'method' => $method]);
-            exit;
+            echo json_encode(['error' => 'Metodo non consentito']);
             break;
     }
-} catch (PDOException $e) {
+} catch (Throwable $e) {
     http_response_code(500);
     echo json_encode([
-        'error' => 'Errore database',
+        'status' => 'error',
         'message' => $e->getMessage(),
-        'hint' => 'Verifica che il database "si_parte" esista e che la tabella "paesi" sia stata creata. Esegui lo script SQL/add_paesi_citta.sql'
+        'route' => $route
     ]);
-    error_log("API PDO Error: " . $e->getMessage());
-    exit;
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        'error' => 'Errore del server',
-        'message' => $e->getMessage(),
-        'type' => get_class($e),
-        'file' => basename($e->getFile()),
-        'line' => $e->getLine()
-    ]);
-    error_log("API Error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
-    exit;
 }
-
