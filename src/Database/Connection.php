@@ -10,15 +10,22 @@ class Connection {
     public static function getInstance() {
         if (self::$instance === null) {
             try {
+                // Leggiamo le variabili da Railway. Se non ci sono, usiamo i valori di localhost.
+                $host = getenv('MYSQLHOST') ?: 'localhost';
+                $port = getenv('MYSQLPORT') ?: '3306';
+                $db   = getenv('MYSQLDATABASE') ?: 'si_parte';
+                $user = getenv('MYSQLUSER') ?: 'root';
+                $pass = getenv('MYSQLPASSWORD') ?: '';
+
                 self::$instance = new PDO(
-                    "mysql:host=localhost;dbname=si_parte;charset=utf8mb4",
-                    "root",   // utente DB
-                    ""        // password vuota
+                    "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4",
+                    $user,
+                    $pass
                 );
+                
                 self::$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 self::$instance->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
             } catch (PDOException $e) {
-                // Non usare die() che stampa HTML, ma lancia un'eccezione
                 throw new \Exception("Connessione database fallita: " . $e->getMessage());
             }
         }
