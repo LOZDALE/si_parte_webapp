@@ -1,6 +1,7 @@
 // Path dell'API - aggiusta questo in base alla struttura del tuo server
 // Se il progetto è in http://localhost/Si_Parte/, usa '/Si_Parte/Public/api.php'
 // Se il progetto è nella root di htdocs, usa '/Public/api.php'
+// funziona db
 const API_BASE = (window.API_BASE) ? window.API_BASE : '/Si_Parte/Public/api.php';
 
 let quizData = [];
