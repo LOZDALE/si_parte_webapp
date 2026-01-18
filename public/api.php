@@ -1,6 +1,6 @@
 <?php
-// api.php - Posizione: / (ROOT)
-ini_set('display_errors', 1); // Temporaneamente a 1 per vedere errori se il 404 sparisce
+// api.php - Nuova Posizione: /public/api.php
+ini_set('display_errors', 1); 
 error_reporting(E_ALL);
 
 header('Content-Type: application/json; charset=utf-8');
@@ -11,19 +11,19 @@ header('Access-Control-Allow-Headers: Content-Type');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit;
 
 try {
-    // 1. Gestione Autoload/Inclusioni
-    if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-        require_once __DIR__ . '/vendor/autoload.php';
+    // 1. Gestione Autoload/Inclusioni (Aggiornata con ../ per uscire da public)
+    if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+        require_once __DIR__ . '/../vendor/autoload.php';
     } else {
-        // Fallback manuale basato sul tuo albero: /src/Database e /src/Controllers
-        require_once __DIR__ . '/src/Database/Connection.php';
-        require_once __DIR__ . '/src/Controllers/QuizController.php';
+        // Usciamo da public (../) ed entriamo in src/
+        require_once __DIR__ . '/../src/Database/Connection.php';
+        require_once __DIR__ . '/../src/Controllers/QuizController.php';
     }
 
     $route = $_GET['route'] ?? '';
     $method = $_SERVER['REQUEST_METHOD'];
     
-    // 2. Controllo esistenza classe prima dell'istanza
+    // 2. Controllo esistenza classe
     if (!class_exists('\SiParte\Quiz\Controllers\QuizController')) {
         throw new Exception("Errore: La classe QuizController non è stata caricata. Controlla i namespace.");
     }
@@ -57,6 +57,7 @@ try {
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage(),
-        'trace' => $e->getFile() . " on line " . $e->getLine() // Ti aiuta a capire DOVE rompe
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
     ]);
 }
