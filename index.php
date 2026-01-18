@@ -1,3 +1,7 @@
 <?php
-// Questo file serve a Railway per attivare l'interprete PHP nella root
-include_once("index.html");
+/**
+ * index.php - Entry point per Railway
+ */
+// Reindirizza l'utente alla tua home dentro Front-end
+header("Location: /Front-end/About_us.html"); 
+exit;

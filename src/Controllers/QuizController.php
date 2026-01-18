@@ -2,6 +2,8 @@
 namespace SiParte\Quiz\Controllers;
 
 use SiParte\Quiz\Database\Connection;
+use PDO;
+use Exception;
 
 class QuizController {
     private $db;
@@ -9,32 +11,24 @@ class QuizController {
     public function __construct() {
         try {
             $this->db = Connection::getInstance();
-        } catch (\Exception $e) {
-            // Se il DB fallisce, logghiamo ma non blocchiamo l'istanza qui
+        } catch (Exception $e) {
             error_log("Errore connessione nel Controller: " . $e->getMessage());
+            $this->db = null;
         }
     }
 
-    // Rimosso /Si_Parte/ dai percorsi per compatibilità Railway
-    private function generateCountrySvgMap($paeseId, $countryName, $cityLat, $cityLon) {
-        $mapUrl = '/Public/maps/paese_' . intval($paeseId) . '.svg';
-        // ... (il resto della logica rimane uguale, ma senza il prefisso della cartella)
-        return $mapUrl;
-    }
-
     public function getQuestions() {
-        // Forza l'uscita in JSON
-        header('Content-Type: application/json');
+        header('Content-Type: application/json; charset=utf-8');
         
-        // Domande Hardcoded di sicurezza (se il DB è vuoto, il sito funziona comunque!)
+        // Domande Hardcoded per garantire il funzionamento anche senza DB
         $questions = [
             [
                 'id' => 1,
                 'question' => 'Quale clima preferisci?',
                 'answers' => [
-                    ['text' => 'Caldo e soleggiato', 'scores' => ['beach' => 3, 'city' => 1]],
+                    ['text' => 'Caldo e soleggiato', 'scores' => ['beach' => 3]],
                     ['text' => 'Fresco e montuoso', 'scores' => ['mountain' => 3]],
-                    ['text' => 'Temperato', 'scores' => ['city' => 3, 'beach' => 1]],
+                    ['text' => 'Temperato', 'scores' => ['city' => 3]],
                     ['text' => 'Freddo', 'scores' => ['mountain' => 1]]
                 ]
             ],
@@ -45,7 +39,7 @@ class QuizController {
                     ['text' => 'Relax totale', 'scores' => ['beach' => 3]],
                     ['text' => 'Avventura e sport', 'scores' => ['mountain' => 3]],
                     ['text' => 'Musei e shopping', 'scores' => ['city' => 3]],
-                    ['text' => 'Natura incontaminata', 'scores' => ['mountain' => 2, 'beach' => 1]]
+                    ['text' => 'Natura', 'scores' => ['mountain' => 2]]
                 ]
             ],
             [
@@ -56,6 +50,15 @@ class QuizController {
                     ['text' => 'Medio', 'scores' => ['beach' => 2]],
                     ['text' => 'Lusso', 'scores' => ['beach' => 3, 'city' => 3]]
                 ]
+            ],
+            [
+                'id' => 4,
+                'question' => 'Che tipo di alloggio preferisci?',
+                'answers' => [
+                    ['text' => 'Hotel di lusso', 'scores' => ['beach' => 3]],
+                    ['text' => 'B&B caratteristico', 'scores' => ['city' => 2]],
+                    ['text' => 'Rifugio o Campeggio', 'scores' => ['mountain' => 3]]
+                ]
             ]
         ];
 
@@ -64,36 +67,53 @@ class QuizController {
     }
 
     public function selectPaese($data) {
-        header('Content-Type: application/json');
+        header('Content-Type: application/json; charset=utf-8');
         
-        // Se il DB non è connesso, diamo un paese di default per non rompere il sito
         if (!$this->db) {
             echo json_encode([
                 'success' => true,
-                'paese_selezionato' => [
-                    'id' => 1,
-                    'nome' => 'Italia (Modalità Offline)',
-                    'descrizione' => 'Connessione database non riuscita, ma puoi continuare il quiz!'
+                'paese_selezionato' => ['id' => 1, 'nome' => 'Italia (Offline)', 'descrizione' => 'DB non connesso.']
+            ]);
+            exit;
+        }
+
+        try {
+            $stmt = $this->db->query("SELECT id, nome, descrizione FROM paesi ORDER BY RAND() LIMIT 1");
+            $paese = $stmt->fetch();
+            echo json_encode(['success' => true, 'paese_selezionato' => $paese]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    public function submitQuiz($data) {
+        header('Content-Type: application/json; charset=utf-8');
+        $paeseId = $data['paese_id'] ?? null;
+
+        if (!$this->db || !$paeseId) {
+            echo json_encode([
+                'success' => true,
+                'recommended_destination' => [
+                    'name' => 'Roma',
+                    'description' => 'La città eterna ti aspetta per un viaggio indimenticabile!'
                 ]
             ]);
             exit;
         }
 
         try {
-            // Cerchiamo un paese a caso nel DB (o logica di matching)
-            $stmt = $this->db->query("SELECT * FROM paesi LIMIT 1");
-            $paese = $stmt->fetch();
-
-            if (!$paese) {
-                throw new \Exception("Nessun paese nel database");
-            }
+            // Cerchiamo una città nel paese selezionato
+            $stmt = $this->db->prepare("SELECT nome as name, descrizione as description FROM citta WHERE paese_id = ? ORDER BY RAND() LIMIT 1");
+            $stmt->execute([$paeseId]);
+            $citta = $stmt->fetch();
 
             echo json_encode([
                 'success' => true,
-                'paese_selezionato' => $paese
+                'recommended_destination' => $citta ?: ['name' => 'Capitale', 'description' => 'Esplora il cuore del paese!']
             ]);
-        } catch (\Exception $e) {
-            echo json_encode(['error' => $e->getMessage()]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
         exit;
     }

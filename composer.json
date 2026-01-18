@@ -12,5 +12,7 @@
             "name": "Francesco D'Alessandro Virginia Richelli Tommaso Migliorato"
         }
     ],
-    "require": {}
+    "require": {
+        "php": ">=8.0"
+    }
 }
