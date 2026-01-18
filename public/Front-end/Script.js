@@ -2,7 +2,7 @@
  * Script.js - Gestione Quiz
  * Posizione: /Front-end/Script.js
  */
-const API_BASE = '../api.php'; 
+const API_BASE = '/api.php'; 
 
 let quizData = [];
 let userAnswers = [];
