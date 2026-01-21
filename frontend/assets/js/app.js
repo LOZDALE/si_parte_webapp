@@ -1,8 +1,8 @@
 /**
- * Script.js - Gestione Quiz
- * Posizione: /Front-end/Script.js
+ * app.js - Gestione Quiz
+ * Posizione: /frontend/assets/js/app.js
  */
-const API_BASE = '/api.php'; 
+const API_BASE = window.API_BASE || 'http://localhost:8000/api.php';
 
 let quizData = [];
 let userAnswers = [];

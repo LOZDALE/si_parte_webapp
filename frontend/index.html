@@ -1,40 +1,23 @@
-<?php
-// 1. Abilitiamo i messaggi di errore per capire se la connessione fallisce
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-// 2. Percorso dinamico basato sul tuo albero:
-// Esci da Front-end (../) ed entra in src/Database/Connection.php
-$db_path = __DIR__ . '/../src/Database/Connection.php';
-
-if (file_exists($db_path)) {
-    include_once($db_path);
-} else {
-    // Se vedi questo messaggio sul sito, significa che il percorso include è ancora errato
-    echo "";
-}
-?>
 <!DOCTYPE html>
 <html lang="it">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Si Parte - Homepage</title>
-    <link rel="stylesheet" href="Style.css" />
+    <link rel="stylesheet" href="assets/css/style.css" />
   </head>
   <body>
     <header>
       <nav class="navbar">
         <div class="container">
           <div class="logo">
-            <img src="img/Logo.png" alt="Logo" />
+            <img src="assets/img/Logo.png" alt="Logo" />
           </div>
           <ul class="nav-links">
-            <li><a href="index.php">Home</a></li>
+            <li><a href="index.html">Home</a></li>
             <li><a href="#quiz">Quiz</a></li>
-            <li><a href="About_us.html">About</a></li>
-            <li><a href="Contact.html">Contact</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
           </ul>
         </div>
       </nav>
@@ -43,7 +26,7 @@ if (file_exists($db_path)) {
     <main>
       <section id="home" class="hero">
         <div class="container">
-          <img src="img/SiParteBianco.png" alt="Si Parte" />
+          <img src="assets/img/SiParteBianco.png" alt="Si Parte" />
         </div>
       </section>
 
@@ -54,14 +37,6 @@ if (file_exists($db_path)) {
           <p>Rispondi a poche domande, scopri la destinazione più adatta a te e vivi una simulazione interattiva del tuo viaggio, dalle attività al budget.</p>
           <p>Che tu stia cercando relax, avventura o cultura, SiParte! ti accompagna passo dopo passo nella pianificazione della tua esperienza ideale.</p>
           
-          <?php 
-          // Controllo visivo della connessione (solo per debug)
-          if (isset($conn) && !$conn->connect_error) {
-              echo "<p style='color: #2ecc71; font-weight: bold;'>✔ Sistema di ricerca pronto</p>";
-          } elseif (isset($conn->connect_error)) {
-              echo "<p style='color: #e74c3c;'>✘ Errore database: " . $conn->connect_error . "</p>";
-          }
-          ?>
         </div>
       </section>
 
@@ -112,6 +87,6 @@ if (file_exists($db_path)) {
       </div>
     </footer>
 
-    <script src="Script.js"></script>
+    <script src="assets/js/app.js"></script>
   </body>
 </html>
