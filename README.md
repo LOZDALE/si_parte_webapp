@@ -1,36 +1,42 @@
 Requisiti:
 
-- PHP 7.4 o superiore
+- PHP 8.2 o superiore (backend)
 - MySQL/MariaDB (XAMPP)
-- Composer (per autoloading)
+- Composer (per autoloading backend)
+- Un server statico per il frontend (es. `python -m http.server`)
 
-Setup:
+Struttura:
 
-1. Clona il repository
-2. Installa le dipendenze con Composer (se necessario): `composer install`
-3. Crea il database 'si_parte' e importa SQL/si_parte.sql
-4. Configura la connessione al database in `src/Database/Connection.php` (default: localhost, root, password vuota)
-5. Apri il frontend: `Front-end/Homepage.html` oppure configura il server web per servire la cartella `Public/`
+- `backend/` - API PHP + DB
+- `frontend/` - HTML/CSS/JS statici
 
-API Backend:
+Setup backend:
 
-L'API REST è disponibile in `Public/api.php` e supporta i seguenti endpoint:
+1. `cd backend`
+2. Installa le dipendenze: `composer install`
+3. Crea il database `si_parte` e importa uno dei dump in `backend/database/`
+4. Configura la connessione al database in `backend/src/Database/Connection.php`
+5. Avvia il server: `php -S 127.0.0.1:8000 -t public`
 
-- `GET /Public/api.php/quiz/questions` - Restituisce le domande del quiz
-- `GET /Public/api.php/quiz/destinations` - Restituisce tutte le destinazioni disponibili
-- `POST /Public/api.php/quiz/submit` - Invia le risposte del quiz e riceve la destinazione raccomandata
+API backend:
 
-Il frontend (`Front-end/Script.js`) comunica automaticamente con l'API. Assicurati che il path `API_BASE` sia configurato correttamente per il tuo ambiente.
+L'API REST è disponibile in `backend/public/api.php` e supporta i seguenti endpoint:
 
-Struttura Backend:
+- `GET /api.php?route=quiz/questions`
+- `GET /api.php?route=quiz/destinations`
+- `POST /api.php?route=quiz/submit`
 
-- `src/Controllers/QuizController.php` - Gestisce la logica del quiz e il matching delle destinazioni
-- `src/Models/User.php` - Modello per la gestione degli utenti nel database
-- `src/Database/Connection.php` - Singleton per la connessione al database
-- `Public/api.php` - Router API REST che gestisce le richieste HTTP
+Setup frontend:
 
-Il backend supporta:
-- Matching intelligente delle destinazioni basato sulle risposte del quiz
-- Calcolo automatico del budget consigliato
-- Salvataggio delle risposte e delle destinazioni assegnate
-- Mapping automatico tra categorie frontend (beach, mountain, city, ski) e database (mare, montagna, città, cultura)
+1. Configura l'endpoint API modificando `API_BASE` in `frontend/assets/js/app.js`
+2. Avvia un server statico nella cartella `frontend/` (es. `python -m http.server 5173`)
+3. Apri `http://127.0.0.1:5173/index.html`
+
+Note:
+
+- Se il backend è su un dominio diverso, serve una URL assoluta in `API_BASE` (es. `https://tuo-backend/api.php`).
+
+Deploy separati:
+
+- Backend: punta il servizio alla cartella `backend/` (su Railway c'è già `backend/railway.json`).
+- Frontend: pubblica la cartella `frontend/` su un host statico (Netlify, Vercel, GitHub Pages, ecc.).
