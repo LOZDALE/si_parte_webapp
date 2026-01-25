@@ -2,7 +2,6 @@
 namespace SiParte\Quiz\Controllers;
 
 use SiParte\Quiz\Database\Connection;
-use PDO;
 use Exception;
 
 class QuizController {
@@ -19,7 +18,7 @@ class QuizController {
 
     public function getQuestions() {
         header('Content-Type: application/json; charset=utf-8');
-        
+
         // Domande Hardcoded per garantire il funzionamento anche senza DB
         $questions = [
             [
@@ -68,7 +67,7 @@ class QuizController {
 
     public function selectPaese($data) {
         header('Content-Type: application/json; charset=utf-8');
-        
+
         if (!$this->db) {
             echo json_encode([
                 'success' => true,
@@ -78,8 +77,8 @@ class QuizController {
         }
 
         try {
-            $stmt = $this->db->query("SELECT id, nome, descrizione FROM paesi ORDER BY RAND() LIMIT 1");
-            $paese = $stmt->fetch();
+            $result = $this->db->query("SELECT id, nome, descrizione FROM paesi ORDER BY RAND() LIMIT 1");
+            $paese = $result ? $result->fetch_assoc() : null;
             echo json_encode(['success' => true, 'paese_selezionato' => $paese]);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -103,10 +102,15 @@ class QuizController {
         }
 
         try {
-            // Cerchiamo una città nel paese selezionato
             $stmt = $this->db->prepare("SELECT nome as name, descrizione as description FROM citta WHERE paese_id = ? ORDER BY RAND() LIMIT 1");
-            $stmt->execute([$paeseId]);
-            $citta = $stmt->fetch();
+            if (!$stmt) {
+                throw new Exception("Prepare fallita: " . $this->db->error);
+            }
+
+            $stmt->bind_param("i", $paeseId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $citta = $result ? $result->fetch_assoc() : null;
 
             echo json_encode([
                 'success' => true,
