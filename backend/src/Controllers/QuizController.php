@@ -108,7 +108,6 @@ class QuizController {
             }
 
             $stmt->bind_param("i", $paeseId);
-            error_log('[DB] submitQuiz: paese_id=' . $paeseId);
             if (!$stmt->execute()) {
                 throw new Exception("Execute fallita: " . $stmt->error);
             }
@@ -124,10 +123,6 @@ class QuizController {
                     $citta = ['name' => $name, 'description' => $description];
                 }
             }
-            if (!$citta) {
-                error_log('[DB] submitQuiz: nessuna citta trovata per paese_id=' . $paeseId);
-            }
-
             echo json_encode([
                 'success' => true,
                 'recommended_destination' => $citta ?: ['name' => 'Capitale', 'description' => 'Esplora il cuore del paese!']

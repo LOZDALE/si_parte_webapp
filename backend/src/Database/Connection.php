@@ -7,15 +7,12 @@ use Exception;
 
 class LoggedMysqliStmt {
     private $stmt;
-    private $sql;
 
-    public function __construct(mysqli_stmt $stmt, string $sql) {
+    public function __construct(mysqli_stmt $stmt) {
         $this->stmt = $stmt;
-        $this->sql = $sql;
     }
 
     public function execute(...$args) {
-        error_log('[DB] execute: ' . $this->sql);
         return $this->stmt->execute(...$args);
     }
 
@@ -39,26 +36,16 @@ class LoggedMysqli {
         $this->conn = $conn;
     }
 
-    private function normalizeSql(string $sql): string {
-        return preg_replace('/\s+/', ' ', trim($sql));
-    }
-
     public function query(string $sql, int $resultmode = MYSQLI_STORE_RESULT) {
-        error_log('[DB] query: ' . $this->normalizeSql($sql));
         return $this->conn->query($sql, $resultmode);
     }
 
     public function prepare(string $sql) {
-        $normalized = $this->normalizeSql($sql);
-        error_log('[DB] prepare: ' . $normalized);
         $stmt = $this->conn->prepare($sql);
-        return $stmt ? new LoggedMysqliStmt($stmt, $normalized) : $stmt;
+        return $stmt ? new LoggedMysqliStmt($stmt) : $stmt;
     }
 
     public function __call($name, $args) {
-        if (in_array($name, ['real_query', 'multi_query', 'execute_query'], true) && isset($args[0]) && is_string($args[0])) {
-            error_log('[DB] ' . $name . ': ' . $this->normalizeSql($args[0]));
-        }
         return $this->conn->$name(...$args);
     }
 
@@ -95,7 +82,6 @@ class Connection {
                 $pass = getenv('MYSQLPASSWORD') ?: '';
             }
 
-            error_log(sprintf('[DB] connecting host=%s port=%s db=%s user=%s', $host, $port, $db, $user));
             $conn = @new mysqli($host, $user, $pass, $db, (int) $port);
             if ($conn->connect_error) {
                 error_log('[DB] connection failed: ' . $conn->connect_error);
@@ -103,10 +89,7 @@ class Connection {
             }
 
             $conn->set_charset('utf8mb4');
-            error_log('[DB] connection ok');
             self::$instance = new LoggedMysqli($conn);
-        } else {
-            error_log('[DB] connection reuse');
         }
 
         return self::$instance;
