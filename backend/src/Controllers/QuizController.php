@@ -108,9 +108,25 @@ class QuizController {
             }
 
             $stmt->bind_param("i", $paeseId);
-            $stmt->execute();
+            error_log('[DB] submitQuiz: paese_id=' . $paeseId);
+            if (!$stmt->execute()) {
+                throw new Exception("Execute fallita: " . $stmt->error);
+            }
+
+            $citta = null;
             $result = $stmt->get_result();
-            $citta = $result ? $result->fetch_assoc() : null;
+            if ($result !== false) {
+                $citta = $result->fetch_assoc();
+            } else {
+                // Fallback se mysqlnd non è disponibile
+                $stmt->bind_result($name, $description);
+                if ($stmt->fetch()) {
+                    $citta = ['name' => $name, 'description' => $description];
+                }
+            }
+            if (!$citta) {
+                error_log('[DB] submitQuiz: nessuna citta trovata per paese_id=' . $paeseId);
+            }
 
             echo json_encode([
                 'success' => true,
