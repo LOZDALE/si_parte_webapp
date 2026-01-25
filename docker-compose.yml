@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      MYSQLHOST: host.docker.internal
+      MYSQLPORT: "3306"
+      MYSQLDATABASE: si_parte
+      MYSQLUSER: root
+      MYSQLPASSWORD: ""
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: php -S 0.0.0.0:8000 -t public
+
+  frontend:
+    image: nginx:alpine
+    ports:
+      - "5173:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - backend

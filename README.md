@@ -5,6 +5,13 @@ Requisiti:
 - Composer (per autoloading backend)
 - Un server statico per il frontend (es. `python -m http.server`)
 
+Docker (sviluppo locale):
+
+1. Assicurati che MySQL sia attivo in locale (XAMPP).
+2. Se usi credenziali diverse, modifica i valori in `docker-compose.yml`.
+3. Avvia i servizi: `docker compose up --build`
+4. Backend su `http://127.0.0.1:8000`, frontend su `http://127.0.0.1:5173`
+
 Struttura:
 
 - `backend/` - API PHP + DB
