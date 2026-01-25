@@ -102,7 +102,7 @@ class QuizController {
         }
 
         try {
-            $stmt = $this->db->prepare("SELECT nome as name, descrizione as description FROM citta WHERE paese_id = ? ORDER BY RAND() LIMIT 1");
+            $stmt = $this->db->prepare("SELECT nome as name, descrizione as description FROM citta WHERE id_paese = ? ORDER BY RAND() LIMIT 1");
             if (!$stmt) {
                 throw new Exception("Prepare fallita: " . $this->db->error);
             }
