@@ -9,11 +9,11 @@ services:
     ports:
       - "8000:8000"
     environment:
-      MYSQLHOST: host.docker.internal
-      MYSQLPORT: "3306"
-      MYSQLDATABASE: si_parte
+      MYSQLHOST: gondola.proxy.rlwy.net
+      MYSQLPORT: "15193"
+      MYSQLDATABASE: railway
       MYSQLUSER: root
-      MYSQLPASSWORD: ""
+      MYSQLPASSWORD: "urBJcfLzWPrMEnbOvSrbFGXZtHiWBUfZ"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: php -S 0.0.0.0:8000 -t public
